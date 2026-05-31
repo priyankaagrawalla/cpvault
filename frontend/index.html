@@ -1,0 +1,2706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CP Vault — Competitive Programming Tracker</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05070f;--bg2:#080c18;--bg3:#0d1120;--bg4:#111626;--bg5:#161c2e;
+  --border:#1a2236;--border2:#1f2a42;--border3:#263350;
+  --text:#dde6ff;--text2:#7d95cc;--text3:#3d4f72;
+  --accent:#5b8dee;--accent2:#4070d8;
+  --green:#1dc9a0;--green2:#16a882;
+  --red:#f05470;--red2:#c73d57;
+  --amber:#f0b429;--amber2:#c88e1a;
+  --purple:#a78bfa;--purple2:#8267e0;
+  --teal:#22d3ee;
+  --radius:7px;--radius2:12px;--radius3:16px;
+  --shadow:0 4px 24px rgba(0,0,0,0.5);
+  --glow-accent:0 0 20px rgba(91,141,238,0.15);
+  --glow-green:0 0 20px rgba(29,201,160,0.15);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+button{font-family:inherit;cursor:pointer;border:none;outline:none}
+input,select,textarea{font-family:inherit;outline:none;border:none;background:transparent;color:var(--text)}
+input::placeholder,textarea::placeholder{color:var(--text3)}
+a{color:var(--accent);text-decoration:none}
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:relative;z-index:10}
+.sidebar::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(91,141,238,0.4),transparent)}
+.main{flex:1;overflow-y:auto;background:var(--bg)}
+.logo{padding:20px 16px 14px;border-bottom:1px solid var(--border)}
+.logo-icon{font-size:22px;margin-bottom:4px}
+.logo-title{font-size:17px;font-weight:700;color:var(--text);letter-spacing:-0.3px;font-family:'Space Mono',monospace}
+.logo-title span{color:var(--accent)}
+.logo-sub{font-size:10px;color:var(--text3);margin-top:2px;letter-spacing:0.5px}
+.nav{flex:1;padding:10px 8px;overflow-y:auto}
+.nav-section{font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--text3);padding:14px 10px 5px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text2);transition:all 0.15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left;font-family:inherit;font-weight:500}
+.nav-item:hover{background:var(--bg4);color:var(--text)}
+.nav-item.active{background:rgba(91,141,238,0.12);color:var(--accent);border:1px solid rgba(91,141,238,0.15)}
+.nav-item i{font-size:15px;min-width:15px}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px;font-family:'Space Mono',monospace}
+.nav-badge.amber{background:var(--amber);color:#000}
+.nav-badge.green{background:var(--green);color:#000}
+
+/* SYNC */
+.sync-panel{border-top:1px solid var(--border);padding:12px}
+.sync-title{font-size:9px;font-weight:700;letter-spacing:1.2px;color:var(--text3);text-transform:uppercase;margin-bottom:9px}
+.sync-row{display:flex;align-items:center;gap:5px;margin-bottom:5px}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.sync-dot.cf{background:#f7b84f}.sync-dot.lc{background:#4f8ef7}.sync-dot.at{background:#e879f9}
+.sync-input{flex:1;font-size:11px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:4px 7px;color:var(--text)}
+.sync-input:focus{border-color:var(--accent)}
+.sync-btn{font-size:10px;padding:4px 8px;border-radius:5px;background:var(--bg4);border:1px solid var(--border2);color:var(--text2);cursor:pointer;font-family:inherit;white-space:nowrap}
+.sync-btn:hover{border-color:var(--accent);color:var(--accent)}
+.sync-status{font-size:10px;color:var(--text3);margin-top:4px;min-height:14px}
+.sync-status.ok{color:var(--green)}.sync-status.err{color:var(--red)}
+
+/* LAYOUT */
+.page-header{padding:24px 28px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.page-title{font-size:22px;font-weight:800;letter-spacing:-0.5px;font-family:'Space Mono',monospace}
+.page-title span{color:var(--accent)}
+.page-sub{font-size:13px;color:var(--text2);margin-top:4px;font-weight:400}
+.content{padding:20px 28px}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:16px;position:relative}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.04),transparent);border-radius:var(--radius2) var(--radius2) 0 0;pointer-events:none}
+.card-sm{padding:13px}
+.card-accent{border-color:rgba(91,141,238,0.25);background:rgba(91,141,238,0.04)}
+.card-green{border-color:rgba(29,201,160,0.25);background:rgba(29,201,160,0.04)}
+.card-red{border-color:rgba(240,84,112,0.25);background:rgba(240,84,112,0.04)}
+.card-amber{border-color:rgba(240,180,41,0.25);background:rgba(240,180,41,0.04)}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius2);padding:15px;position:relative;overflow:hidden}
+.stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--stat-color,var(--accent));opacity:0.5}
+.stat-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin-bottom:7px}
+.stat-value{font-size:26px;font-weight:700;font-family:'Space Mono',monospace;line-height:1}
+.stat-sub{font-size:10px;color:var(--text3);margin-top:4px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--radius);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:all 0.15s;border:1px solid var(--border2)}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 12px rgba(91,141,238,0.3)}.btn-primary:hover{background:var(--accent2);box-shadow:0 2px 18px rgba(91,141,238,0.45)}
+.btn-ghost{background:transparent;color:var(--text2);border-color:var(--border)}.btn-ghost:hover{background:var(--bg4);color:var(--text)}
+.btn-danger{background:transparent;color:var(--red);border-color:rgba(240,84,112,0.3)}.btn-danger:hover{background:rgba(240,84,112,0.1)}
+.btn-green{background:var(--green);color:#000;border-color:var(--green);font-weight:700}.btn-green:hover{background:var(--green2)}
+.btn-amber{background:var(--amber);color:#000;border-color:var(--amber);font-weight:700}.btn-amber:hover{background:var(--amber2)}
+.btn-sm{padding:5px 10px;font-size:12px}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;border-radius:var(--radius2);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:10px 14px;text-align:left;font-size:9px;font-weight:700;letter-spacing:1.2px;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--bg3)}
+td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text2)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02);color:var(--text)}
+
+/* TAGS */
+.tag{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.tag-blue{background:rgba(91,141,238,0.12);color:var(--accent);border:1px solid rgba(91,141,238,0.2)}
+.tag-green{background:rgba(29,201,160,0.12);color:var(--green);border:1px solid rgba(29,201,160,0.2)}
+.tag-red{background:rgba(240,84,112,0.12);color:var(--red);border:1px solid rgba(240,84,112,0.2)}
+.tag-amber{background:rgba(240,180,41,0.12);color:var(--amber);border:1px solid rgba(240,180,41,0.2)}
+.tag-purple{background:rgba(167,139,250,0.12);color:var(--purple);border:1px solid rgba(167,139,250,0.2)}
+.tag-gray{background:rgba(61,79,114,0.2);color:var(--text3)}
+.tag-teal{background:rgba(34,211,238,0.12);color:var(--teal);border:1px solid rgba(34,211,238,0.2)}
+
+/* PLATFORM DOTS */
+.plat{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.plat-cf{background:#f7b84f}.plat-lc{background:#4f8ef7}.plat-cc{background:#22d3a0}
+.plat-hr{background:#f74f6a}.plat-he{background:#c084fc}.plat-at{background:#e879f9}
+
+/* FORMS */
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px;display:block;letter-spacing:0.2px}
+.form-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:9px 12px;font-size:13px;color:var(--text);transition:border-color 0.15s}
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(91,141,238,0.1)}
+.form-select{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:9px 12px;font-size:13px;color:var(--text);appearance:none;cursor:pointer}
+textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;backdrop-filter:blur(4px)}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius3);padding:24px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow)}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(91,141,238,0.4),transparent);pointer-events:none}
+.modal{position:relative}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-title{font-size:16px;font-weight:700;font-family:'Space Mono',monospace}
+.modal-close{background:var(--bg3);border:1px solid var(--border);color:var(--text3);cursor:pointer;font-size:18px;line-height:1;padding:4px 8px;border-radius:6px;transition:all 0.15s}
+.modal-close:hover{color:var(--text);border-color:var(--border2)}
+
+/* CODE */
+.code-block{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-family:'Space Mono',monospace;font-size:12px;overflow-x:auto;max-height:200px;overflow-y:auto;color:#a8b4d0;white-space:pre;line-height:1.6}
+
+/* TABS */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px}
+.tab{padding:10px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);transition:all 0.15s;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.tab:hover:not(.active){color:var(--text)}
+
+/* BAR CHARTS */
+.chart-row{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.chart-label{font-size:12px;color:var(--text2);min-width:115px;text-align:right;font-weight:500}
+.chart-bar-wrap{flex:1;height:22px;background:var(--bg4);border-radius:4px;overflow:hidden;position:relative}
+.chart-bar{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-family:'Space Mono',monospace;font-weight:700;color:#000;min-width:28px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1)}
+.chart-count{font-size:11px;color:var(--text3);min-width:34px;text-align:right;font-family:'Space Mono',monospace}
+
+/* VERTICAL BAR CHART (new) */
+.vbar-wrap{display:flex;align-items:flex-end;gap:6px;height:120px;padding-bottom:4px}
+.vbar-col{display:flex;flex-direction:column;align-items:center;flex:1;gap:4px}
+.vbar{width:100%;border-radius:4px 4px 0 0;min-height:4px;transition:height 0.6s cubic-bezier(0.4,0,0.2,1)}
+.vbar-label{font-size:9px;color:var(--text3);font-family:'Space Mono',monospace;text-align:center;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-weight:700}
+.vbar-count{font-size:10px;color:var(--text2);font-family:'Space Mono',monospace;font-weight:700}
+
+/* ACTIVITY HEATMAP */
+.heatmap-wrap{overflow-x:auto;padding-bottom:4px}
+.heatmap-grid{display:grid;gap:3px}
+.heatmap-cell{border-radius:3px;cursor:pointer;transition:transform 0.1s;position:relative}
+.heatmap-cell:hover{transform:scale(1.3);z-index:2}
+.hm-0{background:var(--bg4)}
+.hm-1{background:rgba(91,141,238,0.2)}
+.hm-2{background:rgba(91,141,238,0.45)}
+.hm-3{background:rgba(91,141,238,0.7)}
+.hm-4{background:var(--accent)}
+.heatmap-months{display:flex;gap:0;margin-bottom:3px;padding-left:24px}
+.hm-month{font-size:9px;color:var(--text3);font-family:'Space Mono',monospace;font-weight:700}
+.heatmap-days{display:flex;flex-direction:column;gap:3px;margin-right:5px}
+.hm-day{font-size:9px;color:var(--text3);font-family:'Space Mono',monospace;height:12px;display:flex;align-items:center;font-weight:700}
+
+/* STREAK */
+.streak-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(240,180,41,0.1);border:1px solid rgba(240,180,41,0.25);border-radius:20px;padding:5px 12px}
+.streak-num{font-size:20px;font-weight:700;font-family:'Space Mono',monospace;color:var(--amber)}
+.streak-label{font-size:12px;color:var(--amber);font-weight:600}
+
+/* CONTEST */
+.contest-item{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius2);padding:13px 16px;margin-bottom:9px;display:flex;align-items:center;justify-content:space-between;gap:11px;transition:border-color 0.15s}
+.contest-item:hover{border-color:var(--border2)}
+.countdown{font-family:'Space Mono',monospace;font-size:13px;color:var(--amber);font-weight:700;background:rgba(240,180,41,0.1);padding:4px 10px;border-radius:20px;border:1px solid rgba(240,180,41,0.2)}
+.contest-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.reminder-tag{font-size:10px;padding:2px 7px;border-radius:12px;background:rgba(91,141,238,0.12);color:var(--accent);border:1px solid rgba(91,141,238,0.2);font-family:'Space Mono',monospace}
+.contest-fetch-status{font-size:12px;color:var(--text3);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.contest-fetch-status.ok{color:var(--green)}.contest-fetch-status.err{color:var(--red)}
+.reminder-options{display:flex;flex-direction:column;gap:10px;margin:14px 0}
+.reminder-opt{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:border-color 0.15s}
+.reminder-opt:hover{border-color:var(--border2)}
+.reminder-opt input{accent-color:var(--accent);width:16px;height:16px;cursor:pointer}
+.reminder-opt-label{font-size:13px;font-weight:600;color:var(--text)}
+.reminder-opt-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.notif-banner{background:rgba(91,141,238,0.06);border:1px solid rgba(91,141,238,0.2);border-radius:var(--radius2);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text2)}
+.notif-banner i{color:var(--accent);font-size:18px}
+
+/* TOPIC GRID */
+.topic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px}
+.topic-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius2);padding:14px;transition:border-color 0.15s}
+.topic-card:hover{border-color:var(--border2)}
+.topic-bar{height:4px;background:var(--border);border-radius:2px;margin:8px 0 5px}
+.topic-bar-fill{height:100%;border-radius:2px;transition:width 0.5s}
+.topic-stats{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);font-family:'Space Mono',monospace}
+
+/* RESOLVE TOGGLE */
+.resolve-toggle{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;width:fit-content}
+.resolve-opt{padding:7px 14px;font-size:12px;cursor:pointer;border:none;background:none;color:var(--text3);font-family:inherit;transition:all 0.15s;font-weight:500}
+.resolve-opt.active{background:var(--accent);color:#fff}
+
+/* MISC */
+.upsolve-banner{background:rgba(240,180,41,0.06);border:1px solid rgba(240,180,41,0.2);border-radius:var(--radius2);padding:12px 15px;margin-bottom:14px;display:flex;align-items:center;gap:11px;font-size:13px;color:var(--amber)}
+.empty{text-align:center;padding:55px 24px;color:var(--text3)}
+.empty i{font-size:40px;margin-bottom:12px;display:block;opacity:0.3}
+.empty-title{font-size:15px;color:var(--text2);font-weight:600;margin-bottom:6px}
+.empty-sub{font-size:13px;line-height:1.7}
+.search-wrap{display:flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:7px 12px;flex:1;max-width:260px;transition:border-color 0.15s}
+.search-wrap:focus-within{border-color:var(--accent)}
+.search-wrap i{color:var(--text3);font-size:15px}
+.search-wrap input{font-size:13px;flex:1}
+.import-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:9px}
+.import-table th{background:var(--bg3);padding:7px 10px;text-align:left;color:var(--text3);font-size:9px;letter-spacing:1.2px;text-transform:uppercase;border-bottom:1px solid var(--border)}
+.import-table td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text2)}
+.import-table tr:last-child td{border-bottom:none}
+.import-table input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px;cursor:pointer}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--border3)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{display:inline-block;width:11px;height:11px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:4px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.fade-in{animation:fadeIn 0.25s ease}
+
+/* REVISION section */
+.revision-banner{background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.2);border-radius:var(--radius2);padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.revision-banner i{font-size:20px;color:var(--purple)}
+.revision-banner-text{flex:1}
+.revision-banner-title{font-size:14px;font-weight:700;color:var(--purple);margin-bottom:2px}
+.revision-banner-sub{font-size:12px;color:var(--text2);line-height:1.5}
+
+/* PROBLEM TABS (resolve/confident) */
+.prob-tabs{display:flex;gap:8px;margin-bottom:18px}
+.prob-tab{padding:8px 18px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);transition:all 0.15s;font-family:inherit}
+.prob-tab.active{background:rgba(91,141,238,0.12);color:var(--accent);border-color:rgba(91,141,238,0.3)}
+.prob-tab-count{font-size:11px;font-family:'Space Mono',monospace;margin-left:6px;opacity:0.7}
+
+/* WEAK AREA CARD */
+.weak-card{background:rgba(240,84,112,0.05);border:1px solid rgba(240,84,112,0.15);border-radius:var(--radius2);padding:14px;margin-bottom:10px}
+.weak-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.weak-card-name{font-size:14px;font-weight:700}
+.weak-card-score{font-family:'Space Mono',monospace;font-size:12px;color:var(--red);font-weight:700}
+.weak-mini-bar{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;margin-top:5px}
+.weak-mini-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--red),var(--amber))}
+
+/* TOOLTIP */
+.tooltip-wrap{position:relative}
+.tooltip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--bg5);border:1px solid var(--border2);border-radius:6px;padding:5px 9px;font-size:11px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:20;color:var(--text);font-family:'Space Mono',monospace;font-weight:700}
+.tooltip-wrap:hover .tooltip{opacity:1}
+
+/* SECTION HEADER */
+.section-head{font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.section-head::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* NOTES */
+.notes-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.notes-topic-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.notes-chip{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);transition:all 0.15s;font-family:inherit}
+.notes-chip:hover{border-color:var(--border2);color:var(--text)}
+.notes-chip.active{background:rgba(91,141,238,0.12);color:var(--accent);border-color:rgba(91,141,238,0.3)}
+.notes-chip-count{font-family:'Space Mono',monospace;font-size:10px;opacity:0.7;margin-left:4px}
+.notes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.note-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius2);padding:14px;cursor:pointer;transition:all 0.15s;display:flex;flex-direction:column;gap:8px}
+.note-card:hover{border-color:rgba(91,141,238,0.35);transform:translateY(-1px);box-shadow:var(--glow-accent)}
+.note-card-topic{font-size:10px;font-weight:700;letter-spacing:0.5px;color:var(--purple);text-transform:uppercase}
+.note-card-title{font-size:14px;font-weight:700;color:var(--text);line-height:1.3}
+.note-card-preview{font-size:12px;color:var(--text3);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.note-card-meta{font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;margin-top:auto;padding-top:8px;border-top:1px solid var(--border)}
+.notes-topic-group{margin-bottom:24px}
+.notes-topic-heading{font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.notes-topic-heading span{font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;font-weight:400}
+.note-editor-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:14px}
+.note-editor-tab{padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;transition:all 0.15s}
+.note-editor-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.note-md-preview{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:16px;min-height:200px;max-height:400px;overflow-y:auto;line-height:1.7;font-size:13px;color:var(--text2)}
+.note-md-preview h1,.note-md-preview h2,.note-md-preview h3{color:var(--text);margin:12px 0 8px;font-family:'Space Mono',monospace}
+.note-md-preview h1{font-size:18px}.note-md-preview h2{font-size:15px}.note-md-preview h3{font-size:13px}
+.note-md-preview p{margin-bottom:10px}
+.note-md-preview code{background:var(--bg);padding:2px 6px;border-radius:4px;font-family:'Space Mono',monospace;font-size:11px;color:var(--teal)}
+.note-md-preview pre{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;overflow-x:auto;margin-bottom:10px}
+.note-md-preview pre code{padding:0;background:none}
+.note-md-preview ul,.note-md-preview ol{margin:8px 0 8px 20px}
+.note-md-preview blockquote{border-left:3px solid var(--accent);padding:8px 14px;margin:10px 0;background:rgba(91,141,238,0.05);color:var(--text2)}
+.note-md-preview a{color:var(--accent)}
+.classify-select{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:9px 12px;font-size:13px;color:var(--text);cursor:pointer}
+
+/* TAG EXPLORER */
+.tag-explorer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.tag-explorer-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius2);padding:14px;cursor:pointer;transition:all 0.15s}
+.tag-explorer-card:hover{border-color:rgba(91,141,238,0.35);transform:translateY(-1px);box-shadow:var(--glow-accent)}
+.tag-explorer-name{font-size:15px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.tag-explorer-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.tag-stat-mini{background:var(--bg4);border-radius:var(--radius);padding:7px 9px}
+.tag-stat-mini-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;font-weight:700}
+.tag-stat-mini-val{font-size:16px;font-weight:700;font-family:'Space Mono',monospace;margin-top:2px}
+.tag-detail-header{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.tag-detail-back{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);cursor:pointer;background:none;border:none;font-family:inherit;padding:6px 10px;border-radius:var(--radius);transition:all 0.15s}
+.tag-detail-back:hover{background:var(--bg4);color:var(--text)}
+.tag-chip-picker{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tag-chip-opt{padding:5px 11px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg4);color:var(--text2);transition:all 0.15s;font-family:inherit}
+.tag-chip-opt.selected{background:rgba(167,139,250,0.15);color:var(--purple);border-color:rgba(167,139,250,0.35)}
+.tag-chip-opt:hover{border-color:var(--border2)}
+.tag-untagged-warn{font-size:11px;color:var(--amber);margin-top:4px}
+
+/* AUTH */
+#auth-screen{position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.auth-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius3);padding:32px;width:100%;max-width:400px;box-shadow:var(--shadow)}
+.auth-title{font-size:22px;font-weight:800;font-family:'Space Mono',monospace;margin-bottom:4px}
+.auth-title span{color:var(--accent)}
+.auth-sub{font-size:13px;color:var(--text2);margin-bottom:24px}
+.auth-error{font-size:12px;color:var(--red);margin-bottom:12px;min-height:18px}
+.auth-switch{font-size:12px;color:var(--text3);margin-top:16px;text-align:center}
+.auth-switch button{background:none;border:none;color:var(--accent);cursor:pointer;font:inherit;font-weight:600}
+.user-bar{padding:10px 12px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
+.user-bar strong{color:var(--text);display:block;font-size:12px;margin-bottom:6px}
+.admin-table{margin-top:12px}
+#app-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg5);border:1px solid var(--border2);color:var(--text);padding:12px 18px;border-radius:var(--radius2);font-size:13px;z-index:300;max-width:90vw;box-shadow:var(--shadow);opacity:0;transition:all 0.25s;pointer-events:none}
+#app-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.dash-empty-hint{background:rgba(91,141,238,0.06);border:1px solid rgba(91,141,238,0.2);border-radius:var(--radius2);padding:14px 16px;margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.6}
+.perf-stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.perf-stat{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius2);padding:14px;text-align:center}
+.perf-stat-val{font-size:28px;font-weight:700;font-family:'Space Mono',monospace;color:var(--accent)}
+.perf-stat-val.green{color:var(--green)}.perf-stat-val.amber{color:var(--amber)}.perf-stat-val.purple{color:var(--purple)}
+.perf-stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:4px;font-weight:700}
+.perf-contest-row{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border)}
+.perf-contest-row:last-child{border-bottom:none}
+.perf-mini-stat{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;padding:3px 8px;border-radius:12px}
+.perf-mini-stat.live{background:rgba(29,201,160,0.12);color:var(--green)}
+.perf-mini-stat.up{background:rgba(91,141,238,0.12);color:var(--accent)}
+.perf-mini-stat.miss{background:rgba(240,84,112,0.12);color:var(--red)}
+.perf-mini-stat.pend{background:rgba(240,180,41,0.12);color:var(--amber)}
+.perf-insight{font-size:13px;color:var(--text2);padding:8px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:flex-start}
+.perf-insight:last-child{border-bottom:none}
+.perf-insight i{color:var(--accent);margin-top:2px}
+.perf-problem-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+.perf-problem-row input,.perf-problem-row select{flex:1}
+</style>
+</head>
+<body>
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-title">CP <span>Vault</span></div>
+    <div class="auth-sub" id="auth-sub">Sign in to sync your progress</div>
+    <div id="auth-backend-status" style="font-size:11px;margin-bottom:12px;padding:8px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text3)">Checking server…</div>
+    <div class="auth-error" id="auth-error"></div>
+    <div id="auth-form-login">
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="auth-email" type="email" placeholder="you@example.com"></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="auth-password" type="password" placeholder="••••••••"></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="submitLogin()">Sign In</button>
+      <div class="auth-switch">No account? <button type="button" onclick="showRegister()">Register</button></div>
+    </div>
+    <div id="auth-form-register" class="hidden">
+      <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="reg-username" placeholder="coder123"></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="reg-email" type="email" placeholder="you@example.com"></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="reg-password" type="password" placeholder="min 8 characters"></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="submitRegister()">Create Account</button>
+      <div class="auth-switch">Have an account? <button type="button" onclick="showLogin()">Sign In</button></div>
+    </div>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+      <button class="btn btn-ghost btn-sm" style="width:100%" onclick="importLegacyLocalStorage()"><i class="ti ti-upload"></i> Import from browser localStorage</button>
+    </div>
+  </div>
+</div>
+<div class="app hidden" id="app-root">
+  <div class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-title">CP <span>Vault</span></div>
+      <div class="logo-sub">Your coding growth OS</div>
+    </div>
+    <nav class="nav">
+      <div class="nav-section">Main</div>
+      <button class="nav-item active" onclick="nav('dashboard')"><i class="ti ti-layout-dashboard"></i> Dashboard</button>
+      <button class="nav-item" onclick="nav('analysis')"><i class="ti ti-chart-bar"></i> Analysis</button>
+      <button class="nav-item" onclick="nav('notes')"><i class="ti ti-notes"></i> Notes</button>
+      <div class="nav-section">Problems</div>
+      <button class="nav-item" onclick="nav('problems')"><i class="ti ti-code"></i> All Problems</button>
+      <button class="nav-item" onclick="nav('tags')"><i class="ti ti-tags"></i> Tag Explorer</button>
+      <button class="nav-item" onclick="nav('resolve')"><i class="ti ti-refresh"></i> Re-Solve <span class="nav-badge amber" id="resolve-badge">0</span></button>
+      <button class="nav-item" onclick="nav('confident')"><i class="ti ti-target"></i> Confident <span class="nav-badge green" id="confident-badge">0</span></button>
+      <button class="nav-item" onclick="nav('revision')"><i class="ti ti-clock-rotate"></i> Revision <span class="nav-badge green hidden" id="revision-badge">!</span></button>
+      <div class="nav-section">Contests</div>
+      <button class="nav-item" onclick="nav('contests')"><i class="ti ti-calendar-event"></i> Contests</button>
+      <div class="nav-section hidden" id="admin-nav-section">Admin</div>
+      <button class="nav-item hidden" id="admin-nav-item" onclick="nav('admin')"><i class="ti ti-users"></i> Users</button>
+    </nav>
+    <div class="sync-panel">
+      <div class="sync-title">🔗 Auto Sync</div>
+      <div class="sync-row">
+        <div class="sync-dot cf"></div>
+        <input class="sync-input" id="cf-handle" placeholder="CF handle">
+        <button class="sync-btn" onclick="syncCF()">Sync</button>
+      </div>
+      <div class="sync-row">
+        <div class="sync-dot lc"></div>
+        <input class="sync-input" id="lc-handle" placeholder="LC username">
+        <button class="sync-btn" onclick="syncLC()">Sync</button>
+      </div>
+      <div class="sync-row">
+        <div class="sync-dot at"></div>
+        <input class="sync-input" id="at-handle" placeholder="AtCoder user">
+        <button class="sync-btn" onclick="syncAT()">Sync</button>
+      </div>
+      <div class="sync-status" id="sync-status"></div>
+    </div>
+    <div class="user-bar" id="user-bar">
+      <strong id="user-display">—</strong>
+      <button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:4px" onclick="openProfileModal()"><i class="ti ti-user"></i> Profile</button>
+      <button class="btn btn-ghost btn-sm" style="width:100%" onclick="logoutUser()"><i class="ti ti-logout"></i> Logout</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- DASHBOARD -->
+    <div id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Dashboard</div>
+          <div class="page-sub">Welcome back — keep the streak alive.</div>
+        </div>
+        <button class="btn btn-primary" onclick="openAddProblem()"><i class="ti ti-plus"></i> Add Problem</button>
+      </div>
+      <div class="content">
+        <div id="dash-empty-hint" class="hidden"></div>
+        <div class="stats-row" id="dash-stats"></div>
+        <!-- Row 1: Heatmap + Streaks -->
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px">
+          <div class="card">
+            <div class="section-head">Activity Heatmap — Last 6 Months</div>
+            <div id="heatmap-container"></div>
+            <div style="display:flex;gap:7px;margin-top:10px;font-size:10px;color:var(--text3);align-items:center">
+              Less
+              <div style="display:flex;gap:3px;align-items:center">
+                <div style="width:11px;height:11px;border-radius:3px" class="hm-0"></div>
+                <div style="width:11px;height:11px;border-radius:3px" class="hm-1"></div>
+                <div style="width:11px;height:11px;border-radius:3px" class="hm-2"></div>
+                <div style="width:11px;height:11px;border-radius:3px" class="hm-3"></div>
+                <div style="width:11px;height:11px;border-radius:3px" class="hm-4"></div>
+              </div>
+              More
+            </div>
+          </div>
+          <div class="card" style="display:flex;flex-direction:column;gap:14px">
+            <div>
+              <div class="section-head">Current Streak</div>
+              <div class="streak-badge" id="streak-badge"><span class="streak-num" id="streak-num">0</span><span class="streak-label">day streak 🔥</span></div>
+              <div style="margin-top:8px;font-size:11px;color:var(--text3);font-family:'Space Mono',monospace" id="streak-best"></div>
+            </div>
+            <div>
+              <div class="section-head">This Week</div>
+              <div id="week-stats"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Row 2: Weak Topics + Recent -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <div class="card">
+            <div class="section-head">Weak Areas</div>
+            <div id="dash-weak"></div>
+          </div>
+          <div class="card">
+            <div class="section-head">Recent Problems</div>
+            <div id="dash-recent"></div>
+          </div>
+        </div>
+        <!-- Row 3: Platform dist + Upcoming contests -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="card">
+            <div class="section-head">Platform Distribution</div>
+            <div id="dash-platform-bars"></div>
+          </div>
+          <div class="card">
+            <div class="section-head">Upcoming Contests</div>
+            <div id="dash-contests"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALL PROBLEMS -->
+    <div id="page-problems" class="hidden">
+      <div class="page-header">
+        <div><div class="page-title">All Problems</div><div class="page-sub">Every problem you've tackled, organized.</div></div>
+        <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+          <div class="search-wrap"><i class="ti ti-search"></i><input id="prob-search" placeholder="Search..." oninput="renderProblems()"></div>
+          <select class="form-select" style="width:130px;padding:7px 10px;font-size:12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text)" id="prob-filter-plat" onchange="renderProblems()">
+            <option value="">All platforms</option>
+            <option>Codeforces</option><option>LeetCode</option><option>CodeChef</option><option>HackerRank</option><option>HackerEarth</option><option>AtCoder</option>
+          </select>
+          <select class="form-select" style="width:130px;padding:7px 10px;font-size:12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text)" id="prob-filter-tag" onchange="renderProblems()"><option value="">All topics</option></select>
+          <button class="btn btn-primary btn-sm" onclick="openAddProblem()"><i class="ti ti-plus"></i> Add</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="table-wrap">
+          <table><thead><tr><th>Problem</th><th>Platform</th><th>Rating</th><th>Tags</th><th>Wrong</th><th>Classification</th><th>Actions</th></tr></thead><tbody id="prob-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAG EXPLORER -->
+    <div id="page-tags" class="hidden">
+      <div class="page-header">
+        <div><div class="page-title">Tag Explorer</div><div class="page-sub">Browse problems by topic — every problem is organized by tags.</div></div>
+      </div>
+      <div class="content">
+        <div id="tag-explorer-root"></div>
+      </div>
+    </div>
+
+    <!-- RE-SOLVE -->
+    <div id="page-resolve" class="hidden">
+      <div class="page-header">
+        <div><div class="page-title">Re-Solve</div><div class="page-sub">Problems you've marked for another attempt — classify from All Problems to add here.</div></div>
+      </div>
+      <div class="content"><div id="resolve-list"></div></div>
+    </div>
+
+    <!-- CONFIDENT -->
+    <div id="page-confident" class="hidden">
+      <div class="page-header">
+        <div><div class="page-title">Confident</div><div class="page-sub">Problems you know well — classify from All Problems to add here.</div></div>
+      </div>
+      <div class="content"><div id="confident-list"></div></div>
+    </div>
+
+    <!-- NOTES -->
+    <div id="page-notes" class="hidden">
+      <div class="page-header">
+        <div><div class="page-title">Notes</div><div class="page-sub">Topic-wise study notes with Markdown support.</div></div>
+        <button class="btn btn-primary" onclick="openAddNote()"><i class="ti ti-plus"></i> New Note</button>
+      </div>
+      <div class="content">
+        <div class="notes-toolbar">
+          <div class="search-wrap"><i class="ti ti-search"></i><input id="note-search" placeholder="Search notes..." oninput="renderNotes()"></div>
+          <select class="form-select" style="width:160px;padding:7px 10px;font-size:12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text)" id="note-filter-topic" onchange="renderNotes()"><option value="">All topics</option></select>
+        </div>
+        <div class="notes-topic-chips" id="note-topic-chips"></div>
+        <div id="notes-list"></div>
+      </div>
+    </div>
+
+    <!-- REVISION (every 3 months) -->
+    <div id="page-revision" class="hidden">
+      <div class="page-header">
+        <div><div class="page-title">Revision</div><div class="page-sub">Spaced repetition — problems due for a revisit.</div></div>
+        <button class="btn btn-ghost btn-sm" onclick="generateRevision()"><i class="ti ti-refresh"></i> Refresh</button>
+      </div>
+      <div class="content">
+        <div class="revision-banner">
+          <i class="ti ti-brain"></i>
+          <div class="revision-banner-text">
+            <div class="revision-banner-title">Time to revise!</div>
+            <div class="revision-banner-sub">Revisit confident problems every 3 months. Re-solve and mark done to complete the set.</div>
+          </div>
+        </div>
+        <div id="revision-list"></div>
+      </div>
+    </div>
+
+    <!-- ANALYSIS -->
+    <div id="page-analysis" class="hidden">
+      <div class="page-header"><div><div class="page-title">Analysis</div><div class="page-sub">Tag-based insights — confidence, re-solve rates, and weak areas.</div></div></div>
+      <div class="content">
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab(this,'atab-topics')">Tags</button>
+          <button class="tab" onclick="switchTab(this,'atab-platforms')">Platforms</button>
+          <button class="tab" onclick="switchTab(this,'atab-ratings')">Difficulty</button>
+          <button class="tab" onclick="switchTab(this,'atab-weak')">Weak Areas</button>
+          <button class="tab" onclick="switchTab(this,'atab-patterns')">Insights</button>
+        </div>
+        <div id="atab-topics"></div>
+        <div id="atab-platforms" class="hidden"></div>
+        <div id="atab-ratings" class="hidden"></div>
+        <div id="atab-weak" class="hidden"></div>
+        <div id="atab-patterns" class="hidden"></div>
+      </div>
+    </div>
+
+    <!-- CONTESTS -->
+    <div id="page-contests" class="hidden">
+      <div class="page-header">
+        <div><div class="page-title">Contests</div><div class="page-sub">Schedule, log results, and analyze your contest performance.</div></div>
+        <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="requestNotifPermission()"><i class="ti ti-bell"></i> Notifications</button>
+          <button class="btn btn-ghost btn-sm" onclick="openLogContestPerformance()"><i class="ti ti-chart-line"></i> Log Result</button>
+          <button class="btn btn-primary" onclick="fetchAllContests()"><i class="ti ti-refresh"></i> Refresh</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="tabs">
+          <button class="tab active" id="contest-tab-upcoming" onclick="switchContestTab('upcoming')">Upcoming</button>
+          <button class="tab" id="contest-tab-performance" onclick="switchContestTab('performance')">Performance</button>
+        </div>
+        <div id="contest-panel-upcoming">
+          <div id="contest-fetch-status" class="contest-fetch-status"></div>
+          <div id="contest-notif-banner" class="notif-banner hidden"><i class="ti ti-bell-ringing"></i><span>Enable browser notifications to get contest reminders.</span><button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="requestNotifPermission()">Enable</button></div>
+          <div class="section-head">Upcoming Contests</div>
+          <div id="contests-upcoming-list"></div>
+        </div>
+        <div id="contest-panel-performance" class="hidden">
+          <div id="contest-performance-root"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN -->
+    <div id="page-admin" class="hidden">
+      <div class="page-header">
+        <div><div class="page-title">Users</div><div class="page-sub">Admin — view all registered users.</div></div>
+      </div>
+      <div class="content">
+        <div class="table-wrap admin-table">
+          <table><thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Problems</th><th>Notes</th><th>Joined</th></tr></thead>
+          <tbody id="admin-users-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div id="app-toast" role="status"></div>
+
+<!-- ADD/EDIT PROBLEM -->
+<div class="modal-overlay hidden" id="modal-problem">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="modal-prob-title">Add Problem</div><button class="modal-close" onclick="closeModal('modal-problem')">×</button></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Problem Name *</label><input class="form-input" id="p-name" placeholder="e.g. Longest Subarray"></div>
+      <div class="form-group"><label class="form-label">Problem URL</label><input class="form-input" id="p-url" placeholder="https://..."></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Platform *</label>
+        <select class="form-select form-input" id="p-platform"><option value="">Select platform</option><option>Codeforces</option><option>LeetCode</option><option>CodeChef</option><option>HackerRank</option><option>HackerEarth</option><option>AtCoder</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Rating / Difficulty</label><input class="form-input" id="p-rating" placeholder="e.g. 1400 or Easy/Medium/Hard"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Tags * <span style="font-weight:400;color:var(--text3)">(at least one)</span></label>
+        <input class="form-input" id="p-tags" list="problem-tag-suggestions" placeholder="e.g. DP, Graphs, Binary Search">
+        <datalist id="problem-tag-suggestions"></datalist>
+        <div class="tag-chip-picker" id="p-tag-chips"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Wrong Attempts Before AC</label><input class="form-input" type="number" id="p-attempts" placeholder="0" min="0"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Your Accepted Code</label><textarea class="form-input" id="p-code" rows="3" placeholder="Paste your solution..." style="font-family:'Space Mono',monospace;font-size:12px"></textarea></div>
+    <div class="form-group"><label class="form-label">Error Notes — what went wrong?</label><textarea class="form-input" id="p-errors" placeholder="e.g. Off-by-one in binary search, forgot edge case..."></textarea></div>
+    <div class="form-group"><label class="form-label">Key Concept / Insight</label><textarea class="form-input" id="p-concept" placeholder="e.g. Use sliding window with two pointers..."></textarea></div>
+    <div class="form-group" id="p-classification-group">
+      <label class="form-label">Classification</label>
+      <select class="classify-select" id="p-classification">
+        <option value="">Unclassified</option>
+        <option value="resolve">Re-Solve</option>
+        <option value="confident">Confident</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-problem')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProblem()" id="save-prob-btn">Add Problem</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW PROBLEM -->
+<div class="modal-overlay hidden" id="modal-view">
+  <div class="modal"><div class="modal-header"><div class="modal-title" id="view-title"></div><button class="modal-close" onclick="closeModal('modal-view')">×</button></div><div id="view-body"></div></div>
+</div>
+
+<!-- IMPORT PREVIEW -->
+<div class="modal-overlay hidden" id="modal-import">
+  <div class="modal" style="max-width:660px">
+    <div class="modal-header"><div class="modal-title" id="import-title">Import Problems</div><button class="modal-close" onclick="closeModal('modal-import')">×</button></div>
+    <div id="import-body"></div>
+    <div style="display:flex;gap:8px;justify-content:space-between;margin-top:12px;align-items:center">
+      <span style="font-size:12px;color:var(--text3)" id="import-count"></span>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="closeModal('modal-import')">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmImport()" id="import-confirm-btn">Import Selected</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CONTEST -->
+<div class="modal-overlay hidden" id="modal-contest">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><div class="modal-title">Add Contest</div><button class="modal-close" onclick="closeModal('modal-contest')">×</button></div>
+    <div class="form-group"><label class="form-label">Contest Name *</label><input class="form-input" id="c-name" placeholder="e.g. Codeforces Round 950 (Div. 2)"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Platform</label><select class="form-select form-input" id="c-platform"><option>Codeforces</option><option>LeetCode</option><option>CodeChef</option><option>AtCoder</option><option>HackerRank</option></select></div>
+      <div class="form-group"><label class="form-label">Date & Time</label><input class="form-input" type="datetime-local" id="c-date"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Duration (minutes)</label><input class="form-input" type="number" id="c-dur" placeholder="120"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-contest')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveContest()">Add Contest</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD UPSOLVE -->
+<div class="modal-overlay hidden" id="modal-upsolve">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><div class="modal-title">Add Upsolve Problem</div><button class="modal-close" onclick="closeModal('modal-upsolve')">×</button></div>
+    <div class="form-group"><label class="form-label">Problem Name *</label><input class="form-input" id="u-name" placeholder="e.g. Problem D — Tree Coloring"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Platform</label><select class="form-select form-input" id="u-platform"><option>Codeforces</option><option>LeetCode</option><option>CodeChef</option><option>AtCoder</option></select></div>
+      <div class="form-group"><label class="form-label">Contest Name</label><input class="form-input" id="u-contest" placeholder="e.g. CF Round 950"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Tags * (comma separated)</label><input class="form-input" id="u-tags" list="problem-tag-suggestions" placeholder="dp, trees, graphs"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-upsolve')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveUpsolve()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOG CONTEST PERFORMANCE -->
+<div class="modal-overlay hidden" id="modal-contest-perf">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header"><div class="modal-title" id="modal-perf-title">Log Contest Result</div><button class="modal-close" onclick="closeModal('modal-contest-perf')">×</button></div>
+    <div class="form-group"><label class="form-label">Contest</label>
+      <select class="form-select form-input" id="perf-contest-select" onchange="onPerfContestSelect()"></select>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Platform</label>
+        <select class="form-select form-input" id="perf-platform"><option>Codeforces</option><option>LeetCode</option><option>CodeChef</option><option>AtCoder</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Solved during contest</label>
+        <input class="form-input" type="number" id="perf-solved-live" min="0" value="0">
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Problem breakdown <span style="font-weight:400;color:var(--text3)">(optional)</span></label>
+      <div id="perf-problems-list"></div>
+      <button type="button" class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="addPerfProblemRow()"><i class="ti ti-plus"></i> Add problem</button>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="perf-notes" rows="2" placeholder="e.g. Could not solve D, need DP practice"></textarea></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-contest-perf')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveContestPerformance()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTEST REMINDERS -->
+<div class="modal-overlay hidden" id="modal-reminder">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><div class="modal-title">Set Reminders</div><button class="modal-close" onclick="closeModal('modal-reminder')">×</button></div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:4px" id="reminder-contest-name"></div>
+    <div style="font-size:11px;color:var(--text3);font-family:'Space Mono',monospace;margin-bottom:8px" id="reminder-contest-time"></div>
+    <p style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.5">Pick reminders, then Save. Browser notifications only work if you allow them (button below) and this tab stays open near contest time.</p>
+    <div class="reminder-options">
+      <label class="reminder-opt"><input type="checkbox" id="rem-1d" value="1d"><div><div class="reminder-opt-label">1 day before</div><div class="reminder-opt-sub">24 hours before start</div></div></label>
+      <label class="reminder-opt"><input type="checkbox" id="rem-1h" value="1h"><div><div class="reminder-opt-label">1 hour before</div><div class="reminder-opt-sub">60 minutes before start</div></div></label>
+      <label class="reminder-opt"><input type="checkbox" id="rem-15m" value="15m"><div><div class="reminder-opt-label">15 minutes before</div><div class="reminder-opt-sub">Last-minute reminder</div></div></label>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-reminder')">Cancel</button>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="requestNotifPermission(false)" style="margin-right:auto"><i class="ti ti-bell"></i> Enable notifications</button>
+      <button class="btn btn-primary" onclick="saveReminders()"><i class="ti ti-bell"></i> Save Reminders</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT NOTE -->
+<div class="modal-overlay hidden" id="modal-note">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header"><div class="modal-title" id="modal-note-title">New Note</div><button class="modal-close" onclick="closeModal('modal-note')">×</button></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Title *</label><input class="form-input" id="n-title" placeholder="e.g. Binary Search Template"></div>
+      <div class="form-group"><label class="form-label">Topic *</label>
+        <input class="form-input" id="n-topic" list="note-topic-suggestions" placeholder="e.g. Binary Search">
+        <datalist id="note-topic-suggestions">
+          <option value="Binary Search"><option value="DP"><option value="Graphs"><option value="Trees"><option value="Strings">
+          <option value="Greedy"><option value="Math"><option value="Geometry"><option value="Segment Tree">
+        </datalist>
+      </div>
+    </div>
+    <div class="note-editor-tabs">
+      <button class="note-editor-tab active" id="note-tab-edit" onclick="switchNoteTab('edit')"><i class="ti ti-pencil"></i> Edit</button>
+      <button class="note-editor-tab" id="note-tab-preview" onclick="switchNoteTab('preview')"><i class="ti ti-eye"></i> Preview</button>
+    </div>
+    <div id="note-edit-pane">
+      <div class="form-group" style="margin-bottom:0"><textarea class="form-input" id="n-content" rows="12" placeholder="Write in Markdown...&#10;&#10;## Key Idea&#10;- Use two pointers&#10;&#10;```cpp&#10;// code here&#10;```" style="font-family:'Space Mono',monospace;font-size:12px"></textarea></div>
+    </div>
+    <div id="note-preview-pane" class="hidden">
+      <div class="note-md-preview" id="n-preview"></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:space-between;margin-top:14px;align-items:center">
+      <button class="btn btn-danger btn-sm hidden" id="note-delete-btn" onclick="deleteNote()"><i class="ti ti-trash"></i> Delete</button>
+      <div style="display:flex;gap:8px;margin-left:auto">
+        <button class="btn btn-ghost" onclick="closeModal('modal-note')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveNote()" id="save-note-btn">Save Note</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="/src/bootstrap.js"></script>
+<script>
+// ======= STATE =======
+let state={
+  problems:[],contests:[],upsolveProblems:[],notes:[],
+  editingId:null,editingNoteId:null,reminderContestId:null,currentPage:'dashboard',
+  pendingImport:[],revisionProblems:[],revisionGeneratedAt:null,
+  revisionHistory:[],contestHistory:[],contestPerformances:[],
+  noteTopicFilter:'',contestsLastFetched:null,selectedExplorerTag:null,
+  contestTab:'upcoming'
+};
+
+const STANDARD_TAGS=['Binary Search','DP','Graphs','Trees','Greedy','Strings','Math','Geometry','Segment Tree','Two Pointers','Sliding Window','Bit Manipulation','Number Theory','Combinatorics','Sorting','Hashing','Stack','Queue','Heap','Union Find','Backtracking','Simulation'];
+const NOTE_TOPICS=STANDARD_TAGS;
+const TAG_ALIASES={'dp':'DP','dynamic programming':'DP','graphs':'Graphs','graph':'Graphs','graph algorithms':'Graphs','dfs and similar':'Graphs','trees':'Trees','tree':'Trees','greedy':'Greedy','binary search':'Binary Search','binary search,':'Binary Search','strings':'Strings','string':'Strings','string algorithms':'Strings','math':'Math','mathematics':'Math','geometry':'Geometry','segment tree':'Segment Tree','data structures':'Data Structures','implementation':'Implementation','brute force':'Brute Force','constructive algorithms':'Constructive','number theory':'Number Theory','combinatorics':'Combinatorics','two pointers':'Two Pointers','sliding window':'Sliding Window','bit manipulation':'Bit Manipulation','sorting':'Sorting','hashing':'Hashing','stack':'Stack','queue':'Queue','heap':'Heap','union find':'Union Find','backtracking':'Backtracking','simulation':'Simulation','shortest paths':'Graphs','dsu':'Union Find','divide and conquer':'Divide & Conquer','interactive':'Interactive','games':'Games','probabilities':'Math','matrices':'Math','fft':'Math','flows':'Graphs','graph matchings':'Graphs','schedules':'Greedy','meet-in-the-middle':'Meet in the Middle','ternary search':'Binary Search','expression parsing':'Strings','chinese remainder theorem':'Number Theory','scheduling':'Greedy'};
+const UNCATEGORIZED_TAG='Uncategorized';
+const REMINDER_LABELS={'1d':'1 day before','1h':'1 hour before','15m':'15 min before'};
+const REMINDER_OFFSETS={'1d':86400000,'1h':3600000,'15m':900000};
+let contestCheckInterval=null;
+
+function migrateProblems(){
+  state.problems.forEach(p=>{
+    if(p.classification===undefined){
+      if(p.shouldResolve===true)p.classification='resolve';
+      else if(p.shouldResolve===false&&p.status==='active')p.classification='confident';
+      else if(p.status==='done')p.classification='confident';
+      else p.classification=null;
+      delete p.shouldResolve;
+    }
+    if(p.classification!=='resolve'&&p.classification!=='confident')p.classification=null;
+    delete p.status;
+    delete p.solvedAt;
+    p.tags=normalizeTags(p.tags);
+    if(!p.tags.length)p.tags=[UNCATEGORIZED_TAG];
+  });
+  (state.contests||[]).forEach(c=>{
+    if(!c.reminders)c.reminders=[];
+    if(!c.firedReminders)c.firedReminders=[];
+    if(c.upsolveAdded===undefined)c.upsolveAdded=false;
+    if(!c.source&&typeof c.id==='number')c.source='manual';
+  });
+}
+
+let saveStateTimer=null;
+let saveStateInFlight=false;
+
+async function loadStateFromServer(){
+  const data=await api.getData();
+  if(!data||typeof data!=='object')throw new Error('Invalid server response');
+  Object.assign(state,{
+    problems:data.problems||[],
+    contests:data.contests||[],
+    upsolveProblems:data.upsolveProblems||[],
+    revisionProblems:data.revisionProblems||[],
+    revisionGeneratedAt:data.revisionGeneratedAt||null,
+    revisionHistory:data.revisionHistory||[],
+    contestHistory:data.contestHistory||[],
+    contestPerformances:data.contestPerformances||[],
+    notes:data.notes||[],
+    contestsLastFetched:data.contestsLastFetched||null,
+    currentPage:state.currentPage||'dashboard',
+    pendingImport:[],
+    noteTopicFilter:state.noteTopicFilter||'',
+    selectedExplorerTag:state.selectedExplorerTag||null
+  });
+  migrateProblems();
+  const h=data.handles||{};
+  document.getElementById('cf-handle').value=h.codeforces||'';
+  document.getElementById('lc-handle').value=h.leetcode||'';
+  document.getElementById('at-handle').value=h.atcoder||'';
+  window._userProfile=data.profile||{};
+}
+window.loadStateFromServer=loadStateFromServer;
+
+function saveState(){
+  updateBadges();
+  if(!window.getAuthToken||!window.getAuthToken())return;
+  clearTimeout(saveStateTimer);
+  saveStateTimer=setTimeout(flushSaveState,400);
+}
+
+async function flushSaveState(){
+  if(saveStateInFlight||!window.getAuthToken())return;
+  saveStateInFlight=true;
+  try{
+    const payload={
+      problems:state.problems,
+      notes:state.notes,
+      contests:state.contests,
+      upsolveProblems:state.upsolveProblems,
+      revisionProblems:state.revisionProblems,
+      revisionGeneratedAt:state.revisionGeneratedAt,
+      revisionHistory:state.revisionHistory||[],
+      contestHistory:state.contestHistory||[],
+      contestPerformances:state.contestPerformances||[],
+      contestsLastFetched:state.contestsLastFetched,
+      handles:{
+        codeforces:document.getElementById('cf-handle').value.trim(),
+        leetcode:document.getElementById('lc-handle').value.trim(),
+        atcoder:document.getElementById('at-handle').value.trim()
+      },
+      profile:window._userProfile||{}
+    };
+    await api.saveData(payload);
+  }catch(e){console.error('Save failed',e);}
+  saveStateInFlight=false;
+}
+
+async function persistHandles(){
+  if(!window.getAuthToken())return;
+  try{
+    await api.updateHandles({
+      codeforces:document.getElementById('cf-handle').value.trim(),
+      leetcode:document.getElementById('lc-handle').value.trim(),
+      atcoder:document.getElementById('at-handle').value.trim()
+    });
+  }catch(e){console.error(e);}
+}
+
+// ======= SYNC CF =======
+async function syncCF(){
+  const handle=document.getElementById('cf-handle').value.trim();
+  if(!handle){setSyncStatus('Enter your CF handle','err');return;}
+  persistHandles();
+  setSyncStatus('<span class="spinner"></span> Fetching Codeforces...','');
+  try{
+    const res=await fetch(`https://codeforces.com/api/user.status?handle=${encodeURIComponent(handle)}&from=1&count=1000`);
+    const data=await res.json();
+    if(data.status!=='OK')throw new Error(data.comment||'CF API error');
+    const wrongMap={};
+    for(const sub of data.result){
+      const p=sub.problem;const key=(p.contestId||'')+'-'+p.index;
+      if(sub.verdict!=='OK'){wrongMap[key]=(wrongMap[key]||0)+1;}
+    }
+    const seen=new Set();const problems=[];
+    for(const sub of data.result){
+      if(sub.verdict!=='OK')continue;
+      const p=sub.problem;const key=(p.contestId||'')+'-'+p.index;
+      if(seen.has(key))continue;seen.add(key);
+      problems.push({name:p.name,platform:'Codeforces',rating:p.rating?String(p.rating):'',tags:normalizeTags(p.tags||[]),attempts:wrongMap[key]||0,url:p.contestId?`https://codeforces.com/problemset/problem/${p.contestId}/${p.index}`:'',date:new Date(sub.creationTimeSeconds*1000).toISOString()});
+    }
+    showImportPreview(problems,`Codeforces — ${handle}`);
+    setSyncStatus(`Found ${problems.length} AC problems`,'ok');
+  }catch(e){setSyncStatus('Error: '+(e.message||'Failed'),'err');}
+}
+
+// ======= SYNC LC =======
+async function syncLC(){
+  const username=document.getElementById('lc-handle').value.trim();
+  if(!username){setSyncStatus('Enter your LeetCode username','err');return;}
+  persistHandles();
+  setSyncStatus('<span class="spinner"></span> Fetching LeetCode...','');
+  try{
+    const res=await fetch(`https://alfa-leetcode-api.onrender.com/${encodeURIComponent(username)}/acSubmission?limit=100`);
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    const data=await res.json();const subs=data.submission||[];
+    if(!Array.isArray(subs))throw new Error('Unexpected response');
+    const seen=new Set();const problems=[];
+    for(const s of subs){
+      const title=s.title||'';if(!title||seen.has(title))continue;seen.add(title);
+      const slug=s.titleSlug||title.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+      let tags=[];
+      try{const tr=await fetch(`https://alfa-leetcode-api.onrender.com/select?titleSlug=${encodeURIComponent(slug)}`);if(tr.ok){const td=await tr.json();tags=normalizeTags((td.topicTags||[]).map(t=>t.name||t.slug||''));}}catch(e){}
+      if(!tags.length)try{const tr2=await fetch(`https://alfa-leetcode-api.onrender.com/${encodeURIComponent(slug)}`);if(tr2.ok){const td2=await tr2.json();tags=normalizeTags((td2.topicTags||[]).map(t=>t.name||''));}}catch(e){}
+      problems.push({name:title,platform:'LeetCode',rating:s.difficulty||'',tags:tags.length?tags:[UNCATEGORIZED_TAG],attempts:0,url:`https://leetcode.com/problems/${slug}/`,date:s.timestamp?new Date(parseInt(s.timestamp)*1000).toISOString():new Date().toISOString()});
+    }
+    showImportPreview(problems,`LeetCode — ${username}`);
+    setSyncStatus(`Found ${problems.length} AC problems`,'ok');
+  }catch(e){setSyncStatus('Error: '+(e.message||'Failed — API may be slow, retry'),'err');}
+}
+
+// ======= SYNC AT =======
+async function syncAT(){
+  const user=document.getElementById('at-handle').value.trim();
+  if(!user){setSyncStatus('Enter your AtCoder username','err');return;}
+  persistHandles();
+  setSyncStatus('<span class="spinner"></span> Fetching AtCoder...','');
+  try{
+    let probMeta={};
+    try{const pr=await fetch('https://kenkoooo.com/atcoder/resources/problems.json');const pd=await pr.json();pd.forEach(p=>probMeta[p.id]=p);}catch(e){}
+    const res=await fetch(`https://kenkoooo.com/atcoder/atcoder-api/v3/user/accepted_count?user=${encodeURIComponent(user)}`);
+    const res2=await fetch(`https://kenkoooo.com/atcoder/atcoder-api/v3/user/submissions?user=${encodeURIComponent(user)}&from_second=0`);
+    if(!res2.ok)throw new Error('AtCoder API error');
+    const subs=await res2.json();
+    const seen=new Set();const problems=[];
+    for(const s of subs){
+      if(s.result!=='AC')continue;if(seen.has(s.problem_id))continue;seen.add(s.problem_id);
+      const meta=probMeta[s.problem_id]||{};
+      let tags=normalizeTags(meta.tags||[]);
+      if(!tags.length&&meta.title){const tl=meta.title.toLowerCase();if(tl.includes('tree'))tags=['Trees'];else if(tl.includes('graph'))tags=['Graphs'];}
+      problems.push({name:meta.title||s.problem_id,platform:'AtCoder',rating:meta.point?String(meta.point):'',tags:tags.length?tags:[UNCATEGORIZED_TAG],attempts:0,url:`https://atcoder.jp/contests/${s.contest_id}/tasks/${s.problem_id}`,date:new Date(s.epoch_second*1000).toISOString()});
+    }
+    showImportPreview(problems,`AtCoder — ${user}`);
+    setSyncStatus(`Found ${problems.length} AC problems`,'ok');
+  }catch(e){setSyncStatus('Error: '+(e.message||'Failed'),'err');}
+}
+
+function setSyncStatus(msg,type){const el=document.getElementById('sync-status');el.innerHTML=msg;el.className='sync-status'+(type?' '+type:'');}
+
+// ======= IMPORT =======
+function showImportPreview(rawProblems,source){
+  const existingNames=new Set(state.problems.map(p=>p.name.toLowerCase().trim()));
+  const newProblems=rawProblems.filter(p=>!existingNames.has(p.name.toLowerCase().trim()));
+  const alreadyHave=rawProblems.length-newProblems.length;
+  state.pendingImport=newProblems;
+  document.getElementById('import-title').textContent=`Import from ${source}`;
+  if(!newProblems.length){
+    document.getElementById('import-body').innerHTML=`<div class="empty" style="padding:28px"><i class="ti ti-check"></i><div class="empty-title">All caught up!</div><div class="empty-sub">${rawProblems.length} problems found — all ${alreadyHave} already in your vault.</div></div>`;
+    document.getElementById('import-confirm-btn').style.display='none';
+    document.getElementById('import-count').textContent='';
+  }else{
+    document.getElementById('import-confirm-btn').style.display='';
+    document.getElementById('import-count').textContent=`${newProblems.length} new · ${alreadyHave} already in vault`;
+    const show=newProblems.slice(0,200);
+    document.getElementById('import-body').innerHTML=`
+      <div style="font-size:12px;color:var(--text3);margin-bottom:7px">Select which to import. Sorted newest first.</div>
+      <div style="max-height:360px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius)">
+        <table class="import-table">
+          <thead><tr><th><input type="checkbox" id="import-all" onchange="toggleAllImport(this)" checked></th><th>Problem</th><th>Rating</th><th>Topics</th><th>Wrong</th></tr></thead>
+          <tbody>${show.map((p,i)=>`<tr>
+            <td><input type="checkbox" class="import-cb" data-i="${i}" checked></td>
+            <td style="max-width:200px"><div style="font-weight:600;color:var(--text);font-size:12px">${esc(p.name)}</div>${p.url?`<a href="${p.url}" target="_blank" style="font-size:10px;color:var(--accent)">open ↗</a>`:''}</td>
+            <td><span class="tag ${ratingTag(p.rating)}" style="font-size:10px">${p.rating||'—'}</span></td>
+            <td style="font-size:11px;color:var(--text3)">${(p.tags||[]).slice(0,3).join(', ')||'—'}</td>
+            <td style="font-family:'Space Mono',monospace;font-size:11px;color:${p.attempts>0?'var(--red)':'var(--text3)'}">${p.attempts}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
+      ${newProblems.length>200?`<div style="font-size:11px;color:var(--text3);margin-top:5px">Showing first 200 of ${newProblems.length}.</div>`:''}`;
+  }
+  openModal('modal-import');
+}
+
+function toggleAllImport(cb){document.querySelectorAll('.import-cb').forEach(c=>c.checked=cb.checked);}
+
+function confirmImport(){
+  const checked=[...document.querySelectorAll('.import-cb')].filter(c=>c.checked).map(c=>parseInt(c.dataset.i));
+  const toImport=state.pendingImport.length>200?[...checked.map(i=>state.pendingImport[i]),...state.pendingImport.slice(200)]:checked.map(i=>state.pendingImport[i]);
+  let added=0;
+  for(const p of toImport){
+    state.problems.push({id:Date.now()+Math.random(),name:p.name,platform:p.platform,url:p.url||'',rating:p.rating||'',tags:normalizeTags(p.tags||[]).length?normalizeTags(p.tags||[]):[UNCATEGORIZED_TAG],attempts:p.attempts||0,code:'',errors:'',concept:'',classification:null,date:p.date||new Date().toISOString(),imported:true});
+    added++;
+  }
+  saveState();closeModal('modal-import');
+  setSyncStatus(`Imported ${added} problems`,'ok');
+  renderPage(state.currentPage);
+}
+
+// ======= NAV =======
+function nav(page){
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>{if(b.getAttribute('onclick')===`nav('${page}')`)b.classList.add('active');});
+  document.querySelectorAll('[id^="page-"]').forEach(p=>p.classList.add('hidden'));
+  const pg=document.getElementById('page-'+page);if(pg)pg.classList.remove('hidden');
+  state.currentPage=page;
+  if(page!=='tags')state.selectedExplorerTag=null;
+  if(page==='dashboard')renderDashboard();
+  else if(page==='contests'){if(!state.contestsLastFetched)fetchAllContests();if(state.contestTab==='performance')renderContestPerformance();}
+  else if(page==='tags'&&state.selectedExplorerTag)renderTagDetail(state.selectedExplorerTag);
+  else renderPage(page);
+}
+
+function renderPage(page){
+  ({dashboard:renderDashboard,problems:renderProblems,tags:renderTagExplorer,resolve:renderResolve,confident:renderConfident,revision:renderRevision,analysis:renderAnalysis,contests:renderContests,notes:renderNotes,admin:renderAdmin})[page]?.();
+}
+
+function switchTab(el,tabId){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  document.querySelectorAll('[id^="atab-"]').forEach(t=>t.classList.add('hidden'));
+  document.getElementById(tabId).classList.remove('hidden');
+  ({'atab-topics':renderTopicAnalysis,'atab-platforms':renderPlatformAnalysis,'atab-ratings':renderRatingAnalysis,'atab-weak':renderWeakAnalysis,'atab-patterns':renderPatternAnalysis})[tabId]?.();
+}
+
+function updateBadges(){
+  const resolveCount=state.problems.filter(p=>p.classification==='resolve').length;
+  const confidentCount=state.problems.filter(p=>p.classification==='confident').length;
+  const rb=document.getElementById('resolve-badge');if(rb){rb.textContent=resolveCount;rb.style.display=resolveCount?'':'none';}
+  const cb=document.getElementById('confident-badge');if(cb){cb.textContent=confidentCount;cb.style.display=confidentCount?'':'none';}
+  checkRevisionDue();
+}
+
+function showToast(msg){
+  const t=document.getElementById('app-toast');
+  if(!t)return;
+  t.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(showToast._timer);
+  showToast._timer=setTimeout(()=>t.classList.remove('show'),4500);
+}
+
+function checkRevisionDue(){
+  const rb=document.getElementById('revision-badge');if(!rb)return;
+  const now=Date.now();
+  const threeMonths=90*24*60*60*1000;
+  const due=!state.revisionGeneratedAt||(now-new Date(state.revisionGeneratedAt).getTime()>threeMonths);
+  if(due&&state.problems.filter(p=>p.classification==='confident').length>0){rb.classList.remove('hidden');}
+  else rb.classList.add('hidden');
+}
+
+// ======= HELPERS =======
+function platCode(p){return{Codeforces:'cf',LeetCode:'lc',CodeChef:'cc',HackerRank:'hr',HackerEarth:'he',AtCoder:'at'}[p]||'cf';}
+function ratingTag(r){if(!r)return'tag-gray';if(r==='Easy')return'tag-green';if(r==='Hard')return'tag-red';if(r==='Medium')return'tag-amber';const n=parseInt(r);if(n<1200)return'tag-green';if(n<1800)return'tag-amber';return'tag-red';}
+function normalizeTag(raw){
+  if(!raw)return null;
+  const trimmed=raw.trim();
+  if(!trimmed)return null;
+  const key=trimmed.toLowerCase();
+  if(TAG_ALIASES[key])return TAG_ALIASES[key];
+  if(STANDARD_TAGS.find(t=>t.toLowerCase()===key))return STANDARD_TAGS.find(t=>t.toLowerCase()===key);
+  return trimmed.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ');
+}
+function normalizeTags(arr){
+  const seen=new Set();const out=[];
+  (arr||[]).forEach(t=>{const n=normalizeTag(t);if(n&&!seen.has(n.toLowerCase())){seen.add(n.toLowerCase());out.push(n);}});
+  return out;
+}
+function parseTagsInput(str){return normalizeTags(str.split(','));}
+function getAllTags(){
+  const fromProblems=[...new Set(state.problems.flatMap(p=>p.tags||[]))];
+  return [...new Set([...STANDARD_TAGS,...fromProblems])].filter(t=>t!==UNCATEGORIZED_TAG).sort();
+}
+function getProblemsByTag(tag){
+  return state.problems.filter(p=>(p.tags||[]).includes(tag));
+}
+function getUntaggedCount(){return state.problems.filter(p=>(p.tags||[]).includes(UNCATEGORIZED_TAG)).length;}
+function populateTagSuggestions(){
+  const dl=document.getElementById('problem-tag-suggestions');
+  if(dl)dl.innerHTML=getAllTags().map(t=>`<option value="${esc(t)}">`).join('');
+}
+function renderTagChipPicker(selectedTags){
+  const el=document.getElementById('p-tag-chips');if(!el)return;
+  const selected=new Set((selectedTags||[]).map(t=>t.toLowerCase()));
+  el.innerHTML=STANDARD_TAGS.map(t=>{
+    const on=selected.has(t.toLowerCase());
+    return`<button type="button" class="tag-chip-opt${on?' selected':''}" onclick="toggleTagChip(${JSON.stringify(t).replace(/"/g,'&quot;')})">${t}</button>`;
+  }).join('');
+}
+function toggleTagChip(tag){
+  const input=document.getElementById('p-tags');
+  const current=parseTagsInput(input.value);
+  const idx=current.findIndex(t=>t.toLowerCase()===tag.toLowerCase());
+  if(idx>=0)current.splice(idx,1);else current.push(normalizeTag(tag));
+  input.value=current.join(', ');
+  renderTagChipPicker(current);
+}
+function openTagDetail(tag){
+  if(!tag)return;
+  state.selectedExplorerTag=tag;
+  if(state.currentPage==='tags')renderTagDetail(tag);
+  else nav('tags');
+}
+function navToTag(tag){openTagDetail(tag);}
+function formatTags(t){return(t||[]).join(', ');}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escAttr(s){return esc(s).replace(/"/g,'&quot;');}
+/** data-nav-tag — use with document click delegation (reliable in innerHTML) */
+function dataNavTag(tag){return `data-nav-tag="${escAttr(encodeURIComponent(tag))}" role="button" tabindex="0"`;}
+function renderTagLinks(tags){
+  return(tags||[]).map(t=>`<span class="tag tag-purple" style="cursor:pointer;font-size:10px;margin-right:3px" ${dataNavTag(t)}>${esc(t)}</span>`).join('');
+}
+function initTagClickDelegation(){
+  if(window._cpvaultTagClicks)return;
+  window._cpvaultTagClicks=true;
+  document.addEventListener('click',function(e){
+    const back=e.target.closest('[data-tag-back]');
+    if(back){
+      e.preventDefault();
+      state.selectedExplorerTag=null;
+      renderTagExplorer();
+      return;
+    }
+    const el=e.target.closest('[data-nav-tag]');
+    if(!el)return;
+    e.preventDefault();
+    let tag;
+    try{tag=decodeURIComponent(el.getAttribute('data-nav-tag')||'');}catch(err){tag=el.getAttribute('data-nav-tag')||'';}
+    if(tag)openTagDetail(tag);
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Enter'&&e.key!==' ')return;
+    const el=e.target.closest('[data-nav-tag]');
+    if(!el)return;
+    e.preventDefault();
+    let tag;
+    try{tag=decodeURIComponent(el.getAttribute('data-nav-tag')||'');}catch(err){tag=el.getAttribute('data-nav-tag')||'';}
+    if(tag)openTagDetail(tag);
+  });
+}
+function getTopicStats(){
+  const s={};
+  state.problems.forEach(p=>{
+    (p.tags||[]).forEach(tag=>{
+      if(!s[tag])s[tag]={total:0,attempts:0,resolve:0,confident:0,unclassified:0,problems:[]};
+      s[tag].total++;
+      s[tag].attempts+=(p.attempts||0);
+      if(p.classification==='resolve')s[tag].resolve++;
+      else if(p.classification==='confident')s[tag].confident++;
+      else s[tag].unclassified++;
+      s[tag].problems.push(p);
+    });
+  });
+  Object.keys(s).forEach(k=>{s[k].acc=s[k].attempts/Math.max(1,s[k].total);});
+  return s;
+}
+
+// ======= STREAK / HEATMAP =======
+function getActivityMap(){
+  const m={};
+  state.problems.forEach(p=>{const d=(p.date||'').substring(0,10);if(d)m[d]=(m[d]||0)+1;});
+  // also count revision/resolve completions by date
+  (state.revisionHistory||[]).forEach(h=>{const d=(h.date||'').substring(0,10);if(d)m[d]=(m[d]||0)+1;});
+  return m;
+}
+
+function calcStreak(actMap){
+  const today=new Date();let streak=0;let best=0;let cur=0;
+  // check last 365 days for best
+  for(let i=0;i<365;i++){
+    const d=new Date(today.getTime()-i*86400000).toISOString().substring(0,10);
+    if(actMap[d]){cur++;if(cur>best)best=cur;}else cur=0;
+  }
+  // current streak
+  for(let i=0;i<365;i++){
+    const d=new Date(today.getTime()-i*86400000).toISOString().substring(0,10);
+    if(actMap[d])streak++;else break;
+  }
+  return{streak,best};
+}
+
+function renderHeatmap(actMap){
+  const container=document.getElementById('heatmap-container');
+  if(!container)return;
+  const weeks=26;// ~6 months
+  const today=new Date();
+  // Find start of the heatmap (Monday of current week, 26 weeks back)
+  const dayOfWeek=today.getDay()||7;// mon=1..sun=7
+  const startDate=new Date(today.getTime()-(((weeks-1)*7)+(dayOfWeek-1))*86400000);
+
+  let monthLabels='<div style="display:flex;gap:0;margin-bottom:4px;margin-left:24px">';
+  let lastMonth=-1;
+  let html='<div style="display:flex;gap:0">';
+  // Day labels
+  html+='<div style="display:flex;flex-direction:column;gap:3px;margin-right:5px;padding-top:2px">';
+  ['M','','W','','F','','S'].forEach(d=>{
+    html+=`<div style="font-size:9px;color:var(--text3);height:12px;font-family:'Space Mono',monospace;font-weight:700;display:flex;align-items:center">${d}</div>`;
+  });
+  html+='</div>';
+
+  let monthHtml='';
+  for(let w=0;w<weeks;w++){
+    html+=`<div style="display:flex;flex-direction:column;gap:3px;margin-right:3px">`;
+    let monthThisCol='';
+    for(let d=0;d<7;d++){
+      const date=new Date(startDate.getTime()+((w*7)+d)*86400000);
+      const dateStr=date.toISOString().substring(0,10);
+      const month=date.getMonth();
+      if(month!==lastMonth&&d===0){monthThisCol=date.toLocaleString('default',{month:'short'});lastMonth=month;}
+      if(date>today){html+=`<div style="width:12px;height:12px;border-radius:3px;opacity:0"></div>`;continue;}
+      const count=actMap[dateStr]||0;
+      const cls=count===0?'hm-0':count===1?'hm-1':count<=3?'hm-2':count<=5?'hm-3':'hm-4';
+      html+=`<div class="tooltip-wrap"><div class="heatmap-cell ${cls}" style="width:12px;height:12px" title="${dateStr}: ${count} problems"></div><div class="tooltip">${dateStr}: ${count}</div></div>`;
+    }
+    html+=`</div>`;
+    if(monthThisCol){monthHtml+=`<div style="font-size:9px;color:var(--text3);font-family:'Space Mono',monospace;font-weight:700;min-width:${15}px">${monthThisCol}</div>`;}
+    else monthHtml+=`<div style="min-width:15px"></div>`;
+  }
+  html+='</div>';
+  container.innerHTML=`<div style="font-size:9px;color:var(--text3);display:flex;gap:3px;margin-bottom:4px;margin-left:24px;overflow:hidden">${monthHtml}</div>`+html;
+}
+
+// ======= DASHBOARD =======
+function renderDashboard(){
+  try{
+  const probs=state.problems||[];const total=probs.length;
+  const hintEl=document.getElementById('dash-empty-hint');
+  if(hintEl){
+    if(!total){
+      hintEl.classList.remove('hidden');
+      hintEl.innerHTML=`<strong style="color:var(--accent)">Your dashboard is empty</strong> — add problems to see stats here.<br>
+        <span style="display:inline-block;margin-top:8px">① Enter your handle in the sidebar and click <b>Sync</b> (Codeforces / LeetCode / AtCoder)</span><br>
+        <span style="display:inline-block;margin-top:4px">② Or click <b>Add Problem</b> above to add one manually</span><br>
+        <span style="display:inline-block;margin-top:4px">③ Contests: open <a href="#" onclick="nav('contests');fetchAllContests();return false" style="color:var(--accent)">Contests → Refresh</a></span>`;
+    }else hintEl.classList.add('hidden');
+  }
+  const unclassified=probs.filter(p=>!p.classification).length;
+  const resolveCount=probs.filter(p=>p.classification==='resolve').length;
+  const confidentCount=probs.filter(p=>p.classification==='confident').length;
+  const avg=total?Math.round(probs.reduce((a,p)=>a+(p.attempts||0),0)/total*10)/10:0;
+  const imported=probs.filter(p=>p.imported).length;
+
+  const untagged=getUntaggedCount();
+  const cp=buildContestAnalytics().summary;
+  document.getElementById('dash-stats').innerHTML=`
+    <div class="stat-card" style="--stat-color:var(--accent)"><div class="stat-label">Total Problems</div><div class="stat-value" style="color:var(--accent)">${total}</div><div class="stat-sub">${imported} auto-synced</div></div>
+    <div class="stat-card" style="--stat-color:var(--purple)"><div class="stat-label">Tags</div><div class="stat-value" style="color:var(--purple)">${Object.keys(getTopicStats()).filter(t=>t!==UNCATEGORIZED_TAG).length}</div><div class="stat-sub">${untagged?untagged+' need tags':'all tagged'}</div></div>
+    <div class="stat-card" style="--stat-color:var(--amber)"><div class="stat-label">Re-Solve</div><div class="stat-value" style="color:var(--amber)">${resolveCount}</div><div class="stat-sub">${unclassified} unclassified</div></div>
+    <div class="stat-card" style="--stat-color:var(--teal)"><div class="stat-label">Confident</div><div class="stat-value" style="color:var(--teal)">${confidentCount}</div><div class="stat-sub">Avg wrong: ${avg}</div></div>
+    <div class="stat-card" style="--stat-color:var(--green);cursor:pointer" onclick="nav('contests');switchContestTab('performance')"><div class="stat-label">Contest live</div><div class="stat-value" style="color:var(--green)">${cp.totalLive}</div><div class="stat-sub">${cp.contestCount} contests · ${cp.upsolveRate}% upsolve</div></div>`;
+
+  const actMap=getActivityMap();
+  renderHeatmap(actMap);
+
+  const {streak,best}=calcStreak(actMap);
+  document.getElementById('streak-num').textContent=streak;
+  document.getElementById('streak-best').textContent=`Best: ${best} days`;
+
+  // Week stats
+  const weekProbs=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(Date.now()-i*86400000).toISOString().substring(0,10);
+    weekProbs.push(actMap[d]||0);
+  }
+  const weekTotal=weekProbs.reduce((a,b)=>a+b,0);
+  document.getElementById('week-stats').innerHTML=`
+    <div style="display:flex;align-items:flex-end;gap:4px;height:40px;margin-bottom:5px">
+      ${weekProbs.slice().reverse().map((n,i)=>{
+        const h=Math.max(4,Math.round((n/Math.max(...weekProbs,1))*38));
+        const cols=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+        return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+          <div style="width:100%;height:${h}px;background:${n?'var(--accent)':'var(--bg4)'};border-radius:3px 3px 0 0;opacity:${n?1:0.4};transition:height 0.4s"></div>
+          <div style="font-size:8px;color:var(--text3);font-family:'Space Mono',monospace">${cols[i]}</div>
+        </div>`;}).join('')}
+    </div>
+    <div style="font-size:12px;color:var(--text2);font-family:'Space Mono',monospace"><span style="color:var(--accent);font-weight:700">${weekTotal}</span> problems this week</div>`;
+
+  // Weak areas
+  const ts=getTopicStats();const sorted=Object.entries(ts).filter(([t])=>t!==UNCATEGORIZED_TAG).sort((a,b)=>b[1].acc-a[1].acc).slice(0,5);
+  document.getElementById('dash-weak').innerHTML=sorted.length?sorted.map(([topic,s])=>{
+    const pct=Math.min(100,Math.round(s.acc*35));const col=pct>55?'var(--red)':pct>25?'var(--amber)':'var(--green)';
+    return`<div class="chart-row" style="cursor:pointer" ${dataNavTag(topic)}><div class="chart-label" style="min-width:95px;font-size:11px">${topic}</div><div class="chart-bar-wrap"><div class="chart-bar" style="width:${Math.max(10,pct)}%;background:${col}">${s.total}</div></div><div class="chart-count">${Math.round(s.acc*10)/10}</div></div>`;
+  }).join(''):'<div style="color:var(--text3);font-size:13px">Add problems with tags to see weak areas.</div>';
+
+  // Recent
+  const recent=probs.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
+  document.getElementById('dash-recent').innerHTML=recent.length?recent.map(p=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:1px">${p.platform} · ${(p.tags||[]).slice(0,2).join(', ')||'no topics'}</div>
+      </div>
+      <span class="tag ${p.classification==='resolve'?'tag-amber':p.classification==='confident'?'tag-teal':'tag-gray'}" style="margin-left:8px;flex-shrink:0">${p.classification||'unclassified'}</span>
+    </div>`).join(''):'<div style="color:var(--text3);font-size:13px">Sync your handle or add problems manually.</div>';
+
+  // Platform distribution bars
+  const ps={};
+  probs.forEach(p=>{if(!ps[p.platform])ps[p.platform]=0;ps[p.platform]++;});
+  const platEntries=Object.entries(ps).sort((a,b)=>b[1]-a[1]);
+  const platMax=Math.max(...Object.values(ps),1);
+  const platColors={Codeforces:'#f7b84f',LeetCode:'#4f8ef7',CodeChef:'#22d3a0',AtCoder:'#e879f9',HackerRank:'#f74f6a',HackerEarth:'#c084fc'};
+  document.getElementById('dash-platform-bars').innerHTML=platEntries.length?platEntries.map(([plat,count])=>{
+    const pct=Math.round((count/platMax)*100);const col=platColors[plat]||'var(--accent)';
+    return`<div class="chart-row"><div class="chart-label" style="min-width:95px;font-size:11px"><span class="plat plat-${platCode(plat)}"></span>${plat}</div><div class="chart-bar-wrap"><div class="chart-bar" style="width:${Math.max(10,pct)}%;background:${col}">${count}</div></div></div>`;
+  }).join(''):'<div style="color:var(--text3);font-size:13px">No problems yet.</div>';
+
+  // Contests
+  processContestLifecycle();
+  const upcoming=getUpcomingContests().slice(0,3);
+  document.getElementById('dash-contests').innerHTML=upcoming.length?upcoming.map(c=>{
+    const diff=Math.max(0,new Date(c.date)-Date.now());const days=Math.floor(diff/86400000);const hrs=Math.floor((diff%86400000)/3600000);
+    return`<div style="padding:8px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600">${esc(c.name)}</div><div style="display:flex;justify-content:space-between;margin-top:3px"><span style="font-size:11px;color:var(--text3)">${c.platform} · ${c.duration}min</span><span class="countdown">${days>0?days+'d '+hrs+'h':hrs+'h'}</span></div></div>`;
+  }).join(''):'<div style="color:var(--text3);font-size:13px">No upcoming contests. <a href="#" onclick="nav(\'contests\');fetchAllContests();return false">Refresh</a></div>';
+  }catch(err){
+    console.error('Dashboard render error',err);
+    showToast('Dashboard error: '+err.message);
+  }
+}
+
+// ======= PROBLEMS =======
+function renderProblems(){
+  const search=(document.getElementById('prob-search').value||'').toLowerCase();
+  const platF=document.getElementById('prob-filter-plat').value;
+  const tagF=document.getElementById('prob-filter-tag').value;
+  const allTags=getAllTags();
+  const ts=document.getElementById('prob-filter-tag');const cur=ts.value;
+  ts.innerHTML='<option value="">All tags</option>'+allTags.map(t=>`<option${t===cur?' selected':''}>${t}</option>`).join('')+`<option${cur===UNCATEGORIZED_TAG?' selected':''}>${UNCATEGORIZED_TAG}</option>`;
+  let filtered=state.problems.filter(p=>{
+    if(search&&!p.name.toLowerCase().includes(search)&&!formatTags(p.tags).toLowerCase().includes(search))return false;
+    if(platF&&p.platform!==platF)return false;
+    if(tagF&&!(p.tags||[]).includes(tagF))return false;
+    return true;
+  }).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const tbody=document.getElementById('prob-tbody');
+  if(!filtered.length){tbody.innerHTML=`<tr><td colspan="7"><div class="empty"><i class="ti ti-search"></i><div class="empty-title">No problems found</div><div class="empty-sub">Sync your handle or add manually.</div></div></td></tr>`;return;}
+  tbody.innerHTML=filtered.map(p=>`<tr>
+    <td style="max-width:200px"><div style="font-weight:600;color:var(--text);font-size:13px">${esc(p.name)}</div>${p.imported?'<span style="font-size:9px;color:var(--text3)">synced</span>':''}${p.url?`<a href="${p.url}" target="_blank" style="font-size:10px;color:var(--accent)"> open↗</a>`:''}</td>
+    <td><span class="plat plat-${platCode(p.platform)}"></span>${p.platform}</td>
+    <td><span class="tag ${ratingTag(p.rating)}">${p.rating||'—'}</span></td>
+    <td>${renderTagLinks((p.tags||[]).slice(0,3))}${(p.tags||[]).length>3?`<span style="font-size:10px;color:var(--text3)"> +${(p.tags||[]).length-3}</span>`:''}${(p.tags||[]).includes(UNCATEGORIZED_TAG)?'<span class="tag-untagged-warn">needs tag</span>':''}</td>
+    <td style="font-family:'Space Mono',monospace;color:${(p.attempts||0)>2?'var(--red)':'var(--text2)'}">${p.attempts||0}</td>
+    <td><span class="tag ${classificationTag(p.classification)}">${p.classification||'—'}</span></td>
+    <td><div style="display:flex;gap:3px">
+      <button type="button" class="btn btn-ghost btn-sm" data-view-problem="${escAttr(String(p.id))}" title="View"><i class="ti ti-eye"></i></button>
+      <button type="button" class="btn btn-ghost btn-sm" data-edit-problem="${escAttr(String(p.id))}" title="Edit"><i class="ti ti-edit"></i></button>
+      <button type="button" class="btn btn-danger btn-sm" data-delete-problem="${escAttr(String(p.id))}" title="Delete"><i class="ti ti-trash"></i></button>
+    </div></td>
+  </tr>`).join('');
+}
+
+function classificationLabel(c){return c==='resolve'?'Re-Solve':c==='confident'?'Confident':'Unclassified';}
+function classificationTag(c){return c==='resolve'?'tag-amber':c==='confident'?'tag-teal':'tag-gray';}
+
+function viewProblem(id){
+  const p=state.problems.find(x=>String(x.id)===String(id));if(!p)return;
+  document.getElementById('view-title').textContent=p.name;
+  document.getElementById('view-body').innerHTML=`
+    <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+      <span class="tag tag-blue"><span class="plat plat-${platCode(p.platform)}"></span>${p.platform}</span>
+      <span class="tag ${ratingTag(p.rating)}">${p.rating||'No rating'}</span>
+      ${renderTagLinks(p.tags)}
+      <span class="tag ${classificationTag(p.classification)}">${classificationLabel(p.classification)}</span>
+    </div>
+    ${p.url?`<div style="margin-bottom:12px"><a href="${p.url}" target="_blank" style="color:var(--accent);font-size:13px"><i class="ti ti-external-link"></i> Open Problem</a></div>`:''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px">
+      <div class="card card-sm card-red"><div style="font-size:9px;letter-spacing:1px;color:var(--text3);font-weight:700;margin-bottom:5px">WRONG ATTEMPTS</div><div style="font-size:24px;font-weight:700;font-family:'Space Mono',monospace;color:var(--red)">${p.attempts||0}</div></div>
+      <div class="card card-sm card-accent"><div style="font-size:9px;letter-spacing:1px;color:var(--text3);font-weight:700;margin-bottom:5px">ADDED</div><div style="font-size:12px;font-weight:700;font-family:'Space Mono',monospace;color:var(--accent)">${new Date(p.date).toLocaleDateString()}</div></div>
+    </div>
+    ${p.errors?`<div class="form-group"><div class="form-label">Error Notes</div><div style="background:rgba(240,84,112,0.05);border-left:3px solid var(--red);border-radius:0 var(--radius) var(--radius) 0;padding:10px 14px;font-size:13px;color:var(--text2);line-height:1.6">${esc(p.errors)}</div></div>`:''}
+    ${p.concept?`<div class="form-group"><div class="form-label">Key Concept</div><div style="background:rgba(91,141,238,0.05);border-left:3px solid var(--accent);border-radius:0 var(--radius) var(--radius) 0;padding:10px 14px;font-size:13px;color:var(--text);line-height:1.6">${esc(p.concept)}</div></div>`:''}
+    ${p.code?`<div class="form-group"><div class="form-label">Solution</div><div class="code-block">${esc(p.code)}</div></div>`:''}
+    <div style="display:flex;gap:8px;justify-content:space-between;margin-top:10px;flex-wrap:wrap">
+      <button type="button" class="btn btn-danger btn-sm" data-delete-problem="${escAttr(String(p.id))}"><i class="ti ti-trash"></i> Delete</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="btn btn-ghost btn-sm" data-edit-problem="${escAttr(String(p.id))}"><i class="ti ti-edit"></i> Edit</button>
+      </div>
+    </div>`;
+  openModal('modal-view');
+}
+
+// ======= RE-SOLVE & CONFIDENT =======
+function renderResolve(){
+  const el=document.getElementById('resolve-list');
+  const items=state.problems.filter(p=>p.classification==='resolve');
+  if(!items.length){el.innerHTML='<div class="empty"><i class="ti ti-refresh"></i><div class="empty-title">No re-solve problems yet</div><div class="empty-sub">Edit a problem and set classification to Re-Solve.</div></div>';return;}
+  el.innerHTML=items.map(p=>renderClassificationCard(p,true)).join('');
+}
+
+function renderConfident(){
+  const el=document.getElementById('confident-list');
+  const items=state.problems.filter(p=>p.classification==='confident');
+  if(!items.length){el.innerHTML='<div class="empty"><i class="ti ti-target"></i><div class="empty-title">No confident problems yet</div><div class="empty-sub">Move problems here once you know them well.</div></div>';return;}
+  el.innerHTML=items.map(p=>renderClassificationCard(p,false)).join('');
+}
+
+function renderClassificationCard(p,isResolve){
+  return`<div class="card" style="margin-bottom:10px${isResolve?'':';border-color:rgba(34,211,238,0.15)'}">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+          <span style="font-size:14px;font-weight:700">${esc(p.name)}</span>
+          <span class="tag ${ratingTag(p.rating)}" style="font-size:10px">${p.rating||'—'}</span>
+        </div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:7px"><span class="plat plat-${platCode(p.platform)}"></span>${p.platform} · ${(p.tags||[]).slice(0,3).join(', ')||'no topics'}</div>
+        ${isResolve&&p.errors?`<div style="background:rgba(240,84,112,0.05);border-left:3px solid var(--red);padding:7px 11px;border-radius:0 var(--radius) var(--radius) 0;font-size:12px;color:var(--text2);margin-bottom:6px;line-height:1.5"><div style="font-size:9px;letter-spacing:1px;color:var(--text3);font-weight:700;margin-bottom:3px">PAST ERRORS</div>${esc(p.errors)}</div>`:''}
+        ${p.concept?`<div style="background:rgba(91,141,238,0.05);border-left:3px solid ${isResolve?'var(--accent)':'var(--teal)'};padding:7px 11px;border-radius:0 var(--radius) var(--radius) 0;font-size:12px;color:var(--text2);line-height:1.5"><div style="font-size:9px;letter-spacing:1px;color:var(--text3);font-weight:700;margin-bottom:3px">KEY CONCEPT</div>${esc(p.concept)}</div>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;min-width:150px">
+        ${p.url?`<a href="${p.url}" target="_blank" class="btn btn-ghost btn-sm"><i class="ti ti-external-link"></i> Open</a>`:''}
+        ${isResolve?`<button class="btn btn-green btn-sm" onclick="setClassification(${p.id},'confident')"><i class="ti ti-target"></i> Re-solved → Confident</button>`:`<button class="btn btn-amber btn-sm" onclick="setClassification(${p.id},'resolve')"><i class="ti ti-refresh"></i> Move to Re-Solve</button>`}
+        <button class="btn btn-ghost btn-sm" onclick="viewProblem(${p.id})"><i class="ti ti-eye"></i> Details</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function setClassification(id,value){
+  const p=state.problems.find(x=>String(x.id)===String(id));
+  if(p){p.classification=value||null;saveState();renderPage(state.currentPage);}
+}
+
+// ======= REVISION =======
+function generateRevision(){
+  const confident=state.problems.filter(p=>p.classification==='confident');
+  if(!confident.length){return;}
+  const ts=getTopicStats();
+  const weakTopics=Object.entries(ts).filter(([,s])=>s.acc>1&&s.total>=2).map(([t])=>t);
+  let pool=[];
+  if(weakTopics.length>0){
+    confident.forEach(p=>{if((p.tags||[]).some(t=>weakTopics.includes(t)))pool.push(p);});
+  }
+  if(pool.length<5)pool=[...confident];
+  // Shuffle and pick 5-8
+  pool.sort(()=>Math.random()-0.5);
+  const count=Math.min(Math.max(5,Math.ceil(pool.length*0.15)),10);
+  state.revisionProblems=pool.slice(0,count).map(p=>({...p,revisionStatus:'pending'}));
+  state.revisionGeneratedAt=new Date().toISOString();
+  saveState();renderRevision();
+}
+
+function renderRevision(){
+  const el=document.getElementById('revision-list');
+  const now=Date.now();
+  const threeMonths=90*24*60*60*1000;
+  const isDue=!state.revisionGeneratedAt||(now-new Date(state.revisionGeneratedAt).getTime()>threeMonths);
+  const confident=state.problems.filter(p=>p.classification==='confident');
+
+  if(!confident.length){el.innerHTML='<div class="empty"><i class="ti ti-clock-rotate"></i><div class="empty-title">No confident problems yet</div><div class="empty-sub">Once you classify problems as Confident, revision sets will appear here every 3 months.</div></div>';return;}
+
+  if(!state.revisionProblems||!state.revisionProblems.length||isDue){
+    el.innerHTML=`<div class="empty"><i class="ti ti-clock-rotate"></i><div class="empty-title">${isDue?'Revision time!':'No revision set yet'}</div>
+      <div class="empty-sub">Click "Refresh" above to generate a revision set from your confident problems (${confident.length} available).</div>
+      <button class="btn btn-primary" style="margin-top:16px" onclick="generateRevision()"><i class="ti ti-refresh"></i> Generate Revision Set</button></div>`;return;
+  }
+
+  const pending=state.revisionProblems.filter(r=>r.revisionStatus==='pending');
+  const completed=state.revisionProblems.filter(r=>r.revisionStatus==='done');
+
+  if(!pending.length&&!completed.length){el.innerHTML='<div class="empty"><i class="ti ti-check-circle"></i><div class="empty-title">Revision complete!</div><div class="empty-sub">All revision problems are done. Great work! Next revision in 3 months.</div></div>';return;}
+
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;gap:11px;margin-bottom:16px">
+      <div style="font-size:12px;color:var(--text2)">Generated: ${new Date(state.revisionGeneratedAt).toLocaleDateString()}</div>
+      <div style="flex:1;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.round((completed.length/state.revisionProblems.length)*100)}%;background:var(--purple);border-radius:3px;transition:width 0.5s"></div></div>
+      <div style="font-size:12px;font-family:'Space Mono',monospace;color:var(--purple)">${completed.length}/${state.revisionProblems.length}</div>
+    </div>
+    ${pending.map(r=>`<div class="card" style="margin-bottom:10px;border-color:rgba(167,139,250,0.2)">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+            <span style="font-size:14px;font-weight:700">${esc(r.name)}</span>
+            <span class="tag ${ratingTag(r.rating)}" style="font-size:10px">${r.rating||'—'}</span>
+            <span class="tag tag-purple" style="font-size:10px">revision</span>
+          </div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:6px"><span class="plat plat-${platCode(r.platform)}"></span>${r.platform} · ${(r.tags||[]).slice(0,3).join(', ')||'no topics'}</div>
+          ${r.concept?`<div style="background:rgba(167,139,250,0.05);border-left:3px solid var(--purple);padding:7px 11px;border-radius:0 var(--radius) var(--radius) 0;font-size:12px;color:var(--text2);line-height:1.5"><div style="font-size:9px;letter-spacing:1px;color:var(--text3);font-weight:700;margin-bottom:3px">KEY CONCEPT</div>${esc(r.concept)}</div>`:''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;min-width:130px">
+          ${r.url?`<a href="${r.url}" target="_blank" class="btn btn-ghost btn-sm"><i class="ti ti-external-link"></i> Open</a>`:''}
+          <button class="btn btn-primary btn-sm" style="background:var(--purple);border-color:var(--purple)" onclick="markRevisionDone('${r.id}')"><i class="ti ti-check"></i> Done!</button>
+        </div>
+      </div>
+    </div>`).join('')}
+    ${completed.length?`<div class="section-head" style="margin-top:16px">Completed</div>
+    ${completed.map(r=>`<div class="card card-sm" style="opacity:0.6;margin-bottom:7px"><div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;font-weight:600">${esc(r.name)}</span><span class="tag tag-green">✓ revised</span></div></div>`).join('')}`:''}`;
+}
+
+function markRevisionDone(id){
+  const r=state.revisionProblems.find(x=>String(x.id)===String(id));
+  if(r){
+    r.revisionStatus='done';
+    if(!state.revisionHistory)state.revisionHistory=[];
+    state.revisionHistory.push({date:new Date().toISOString(),type:'completed'});
+    saveState();
+    renderRevision();
+  }
+}
+
+// ======= ADD/EDIT/DELETE =======
+function openAddProblem(){
+  state.editingId=null;
+  document.getElementById('modal-prob-title').textContent='Add Problem';
+  document.getElementById('save-prob-btn').textContent='Add Problem';
+  ['p-name','p-url','p-rating','p-tags','p-code','p-errors','p-concept'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('p-platform').value='';document.getElementById('p-attempts').value='0';
+  document.getElementById('p-classification-group').classList.add('hidden');
+  populateTagSuggestions();renderTagChipPicker([]);
+  openModal('modal-problem');
+}
+function editProblem(id){
+  const p=state.problems.find(x=>String(x.id)===String(id));if(!p)return;
+  state.editingId=id;
+  document.getElementById('modal-prob-title').textContent='Edit Problem';
+  document.getElementById('save-prob-btn').textContent='Save Changes';
+  document.getElementById('p-classification-group').classList.remove('hidden');
+  document.getElementById('p-name').value=p.name||'';document.getElementById('p-url').value=p.url||'';
+  document.getElementById('p-platform').value=p.platform||'';document.getElementById('p-rating').value=p.rating||'';
+  document.getElementById('p-tags').value=(p.tags||[]).join(', ');document.getElementById('p-attempts').value=p.attempts||0;
+  document.getElementById('p-code').value=p.code||'';document.getElementById('p-errors').value=p.errors||'';document.getElementById('p-concept').value=p.concept||'';
+  document.getElementById('p-classification').value=p.classification||'';
+  populateTagSuggestions();renderTagChipPicker(p.tags||[]);
+  openModal('modal-problem');
+}
+function getClassificationValue(){
+  const v=document.getElementById('p-classification').value;
+  return v==='resolve'||v==='confident'?v:null;
+}
+function saveProblem(){
+  const name=document.getElementById('p-name').value.trim();const platform=document.getElementById('p-platform').value;
+  if(!name||!platform){alert('Please fill in problem name and platform.');return;}
+  const tags=parseTagsInput(document.getElementById('p-tags').value);
+  if(!tags.length){alert('Please add at least one tag (e.g. DP, Graphs, Binary Search).');return;}
+  const finalTags=tags.includes(UNCATEGORIZED_TAG)&&tags.length>1?tags.filter(t=>t!==UNCATEGORIZED_TAG):tags;
+  const classification=getClassificationValue();
+  const data={name,platform,url:document.getElementById('p-url').value.trim(),rating:document.getElementById('p-rating').value.trim(),tags:finalTags,attempts:parseInt(document.getElementById('p-attempts').value)||0,code:document.getElementById('p-code').value.trim(),errors:document.getElementById('p-errors').value.trim(),concept:document.getElementById('p-concept').value.trim(),classification};
+  if(state.editingId){const p=state.problems.find(x=>x.id===state.editingId);if(p){Object.assign(p,data);p.imported=false;}}
+  else state.problems.push({id:Date.now()+Math.random(),...data,classification:null,date:new Date().toISOString(),imported:false});
+  saveState();closeModal('modal-problem');renderPage(state.currentPage);
+}
+function deleteProblem(id){
+  if(!confirm('Delete this problem permanently? This cannot be undone.'))return;
+  state.problems=(state.problems||[]).filter(p=>String(p.id)!==String(id));
+  state.revisionProblems=(state.revisionProblems||[]).filter(p=>String(p.id)!==String(id));
+  saveState();
+  closeModal('modal-view');
+  closeModal('modal-problem');
+  if(state.currentPage==='problems')renderProblems();
+  else if(state.currentPage==='dashboard')renderDashboard();
+  else if(state.currentPage==='tags')state.selectedExplorerTag?renderTagDetail(state.selectedExplorerTag):renderTagExplorer();
+  showToast('Problem deleted');
+}
+
+// ======= TAG EXPLORER =======
+function renderTagExplorer(){
+  const root=document.getElementById('tag-explorer-root');
+  if(!root)return;
+  if(state.selectedExplorerTag)return renderTagDetail(state.selectedExplorerTag);
+
+  const ts=getTopicStats();
+  const searchEl=document.getElementById('tag-explorer-search');
+  const search=searchEl?searchEl.value.toLowerCase():'';
+  let entries=Object.entries(ts).filter(([t])=>t!==UNCATEGORIZED_TAG).sort((a,b)=>b[1].total-a[1].total);
+  if(search)entries=entries.filter(([t])=>t.toLowerCase().includes(search));
+
+  const uncategorized=ts[UNCATEGORIZED_TAG];
+  root.innerHTML=`
+    <div class="notes-toolbar" style="margin-bottom:16px">
+      <div class="search-wrap"><i class="ti ti-search"></i><input id="tag-explorer-search" placeholder="Search tags..." value="${esc(search)}" oninput="renderTagExplorer()"></div>
+      ${uncategorized?`<span class="tag tag-amber" style="cursor:pointer" ${dataNavTag(UNCATEGORIZED_TAG)}><i class="ti ti-alert-triangle"></i> ${uncategorized.total} uncategorized</span>`:''}
+    </div>
+    ${!entries.length?`<div class="empty"><i class="ti ti-tags"></i><div class="empty-title">No tags yet</div><div class="empty-sub">Add problems with tags like DP, Graphs, or Binary Search.</div></div>`:`
+    <div class="tag-explorer-grid fade-in">
+      ${entries.map(([tag,s])=>`
+        <div class="tag-explorer-card" ${dataNavTag(tag)}>
+          <div class="tag-explorer-name"><span class="tag tag-purple">${esc(tag)}</span></div>
+          <div class="tag-explorer-stats">
+            <div class="tag-stat-mini"><div class="tag-stat-mini-label">Total</div><div class="tag-stat-mini-val" style="color:var(--accent)">${s.total}</div></div>
+            <div class="tag-stat-mini"><div class="tag-stat-mini-label">Avg Wrong</div><div class="tag-stat-mini-val" style="color:${s.acc>1?'var(--red)':'var(--text2)'}">${Math.round(s.acc*10)/10}</div></div>
+            <div class="tag-stat-mini"><div class="tag-stat-mini-label">Confident</div><div class="tag-stat-mini-val" style="color:var(--teal)">${s.confident}</div></div>
+            <div class="tag-stat-mini"><div class="tag-stat-mini-label">Re-Solve</div><div class="tag-stat-mini-val" style="color:var(--amber)">${s.resolve}</div></div>
+          </div>
+          <div style="height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;display:flex">
+            <div style="width:${Math.round(s.confident/Math.max(1,s.total)*100)}%;background:var(--teal);height:100%"></div>
+            <div style="width:${Math.round(s.resolve/Math.max(1,s.total)*100)}%;background:var(--amber);height:100%"></div>
+          </div>
+          <div style="font-size:10px;color:var(--text3);margin-top:6px;font-family:'Space Mono',monospace">${s.unclassified} unclassified · click to explore</div>
+        </div>`).join('')}
+    </div>`}`;
+}
+
+function renderTagDetail(tag){
+  const root=document.getElementById('tag-explorer-root');
+  const ts=getTopicStats()[tag]||{total:0,confident:0,resolve:0,unclassified:0,acc:0,problems:[]};
+  const problems=getProblemsByTag(tag).sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+  root.innerHTML=`
+    <div class="tag-detail-header">
+      <button type="button" class="tag-detail-back" data-tag-back><i class="ti ti-arrow-left"></i> All Tags</button>
+      <span class="tag tag-purple" style="font-size:13px">${esc(tag)}</span>
+    </div>
+    <div class="stats-row" style="margin-bottom:18px">
+      <div class="stat-card" style="--stat-color:var(--accent)"><div class="stat-label">Total</div><div class="stat-value" style="color:var(--accent)">${ts.total}</div></div>
+      <div class="stat-card" style="--stat-color:var(--teal)"><div class="stat-label">Confident</div><div class="stat-value" style="color:var(--teal)">${ts.confident}</div></div>
+      <div class="stat-card" style="--stat-color:var(--amber)"><div class="stat-label">Re-Solve</div><div class="stat-value" style="color:var(--amber)">${ts.resolve}</div></div>
+      <div class="stat-card" style="--stat-color:var(--red)"><div class="stat-label">Avg Wrong</div><div class="stat-value" style="color:${ts.acc>1?'var(--red)':'var(--amber)'}">${Math.round(ts.acc*10)/10}</div></div>
+    </div>
+    ${tag===UNCATEGORIZED_TAG?`<div class="upsolve-banner" style="margin-bottom:14px"><i class="ti ti-alert-triangle"></i> These problems need proper tags. Edit each one to assign topics.</div>`:''}
+    <div class="section-head">Problems (${problems.length})</div>
+    ${!problems.length?'<div style="color:var(--text3);font-size:13px">No problems in this tag.</div>':problems.map(p=>`
+      <div class="card card-sm" style="margin-bottom:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:700;margin-bottom:3px">${esc(p.name)}</div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:5px"><span class="plat plat-${platCode(p.platform)}"></span>${p.platform} · ${p.rating||'—'}</div>
+            <div>${renderTagLinks(p.tags)}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <span class="tag ${classificationTag(p.classification)}">${p.classification||'—'}</span>
+            <span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--text3)">${p.attempts||0} wrong</span>
+            <button type="button" class="btn btn-ghost btn-sm" data-view-problem="${escAttr(String(p.id))}"><i class="ti ti-eye"></i></button>
+            <button type="button" class="btn btn-ghost btn-sm" data-edit-problem="${escAttr(String(p.id))}"><i class="ti ti-edit"></i></button>
+          </div>
+        </div>
+      </div>`).join('')}`;
+}
+
+// ======= CONTESTS =======
+function getContestEnd(c){return new Date(c.date).getTime()+(c.duration||120)*60000;}
+
+function getUpcomingContests(){
+  const now=Date.now();
+  return state.contests.filter(c=>getContestEnd(c)>now).sort((a,b)=>new Date(a.date)-new Date(b.date));
+}
+
+function formatCountdown(ms){
+  const diff=Math.max(0,ms);
+  const days=Math.floor(diff/86400000);
+  const hrs=Math.floor((diff%86400000)/3600000);
+  const mins=Math.floor((diff%3600000)/60000);
+  if(days>0)return days+'d '+hrs+'h';
+  if(hrs>0)return hrs+'h '+mins+'m';
+  return mins+'m';
+}
+
+async function fetchViaProxy(url){
+  const res=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(url));
+  if(!res.ok)throw new Error('Proxy fetch failed');
+  return res.json();
+}
+
+async function fetchCFContests(){
+  const res=await fetch('https://codeforces.com/api/contest.list?gym=false');
+  const data=await res.json();
+  if(data.status!=='OK')throw new Error(data.comment||'CF error');
+  const now=Date.now();
+  return data.result.filter(c=>c.phase==='BEFORE'&&c.startTimeSeconds*1000>now).map(c=>({
+    id:'cf-'+c.id,externalId:String(c.id),name:c.name,platform:'Codeforces',
+    date:new Date(c.startTimeSeconds*1000).toISOString(),
+    duration:Math.max(1,Math.round((c.durationSeconds||7200)/60)),
+    url:'https://codeforces.com/contests/'+c.id,source:'auto'
+  }));
+}
+
+async function fetchATContests(){
+  const res=await fetch('https://kenkoooo.com/atcoder/resources/contests.json');
+  const data=await res.json();
+  const now=Date.now()/1000;
+  return data.filter(c=>c.start_epoch_second>now).map(c=>({
+    id:'at-'+c.id,externalId:String(c.id),name:c.title,platform:'AtCoder',
+    date:new Date(c.start_epoch_second*1000).toISOString(),
+    duration:Math.max(1,Math.round((c.duration_second||7200)/60)),
+    url:'https://atcoder.jp/contests/'+c.id,source:'auto'
+  }));
+}
+
+async function fetchCCContests(){
+  const data=await fetchViaProxy('https://www.codechef.com/api/list/contests/all?sort_by=START&sorting_order=asc&offset=0&mode=all');
+  const list=data.future_contests||[];
+  return list.map(c=>{
+    const start=new Date(c.contest_start_date_iso||c.contest_start_date);
+    const end=new Date(c.contest_end_date_iso||c.contest_end_date);
+    const dur=Math.max(1,Math.round((end-start)/60000)||180);
+    return{id:'cc-'+c.code,externalId:c.code,name:c.contest_name,platform:'CodeChef',
+      date:start.toISOString(),duration:dur,url:'https://www.codechef.com/'+c.code,source:'auto'};
+  }).filter(c=>new Date(c.date)>new Date());
+}
+
+async function fetchLCContests(){
+  try{
+    const res=await fetch('https://alfa-leetcode-api.onrender.com/contests');
+    if(!res.ok)throw new Error('LC API error');
+    const data=await res.json();
+    const list=Array.isArray(data)?data:(data.contest_calendar||data.contests||[]);
+    return list.filter(c=>{
+      const start=c.startTime||(c.start_time?c.start_time*1000:null)||(c.start_time_seconds?c.start_time_seconds*1000:null);
+      return start&&start>Date.now();
+    }).map(c=>{
+      const startMs=c.startTime||(c.start_time*1000)||(c.start_time_seconds*1000);
+      const dur=Math.max(1,Math.round((c.duration||7200)/60));
+      const title=c.title||c.contest_title||'LeetCode Contest';
+      const slug=c.titleSlug||c.title_slug||'';
+      return{id:'lc-'+(slug||title.replace(/\s+/g,'-').toLowerCase()),externalId:slug||title,name:title,platform:'LeetCode',
+        date:new Date(startMs).toISOString(),duration:dur,
+        url:slug?'https://leetcode.com/contest/'+slug:'https://leetcode.com/contest/',source:'auto'};
+    });
+  }catch(e){
+    const data=await fetchViaProxy('https://leetcode.com/contest/api/list/');
+    const list=(data.contests||[]).filter(c=>c.start_time*1000>Date.now());
+    return list.map(c=>({
+      id:'lc-'+c.title_slug,externalId:c.title_slug,name:c.title,platform:'LeetCode',
+      date:new Date(c.start_time*1000).toISOString(),duration:Math.max(1,Math.round((c.duration||7200)/60)),
+      url:'https://leetcode.com/contest/'+c.title_slug,source:'auto'
+    }));
+  }
+}
+
+function mergeContests(fetched){
+  const prevMap={};
+  state.contests.forEach(c=>{prevMap[c.id]=c;});
+  fetched.forEach(c=>{
+    const prev=prevMap[c.id];
+    c.reminders=prev?.reminders||[];
+    c.firedReminders=prev?.firedReminders||[];
+    c.upsolveAdded=prev?.upsolveAdded||false;
+  });
+  const fetchedIds=new Set(fetched.map(c=>c.id));
+  const manual=state.contests.filter(c=>c.source==='manual'&&!fetchedIds.has(c.id)&&getContestEnd(c)>Date.now());
+  state.contests=[...fetched,...manual];
+  state.contestsLastFetched=new Date().toISOString();
+  saveState();
+}
+
+async function fetchAllContests(){
+  const el=document.getElementById('contest-fetch-status');
+  if(el)el.innerHTML='<span class="spinner"></span> Fetching contests from all platforms...';
+  const results=await Promise.allSettled([fetchCFContests(),fetchCCContests(),fetchLCContests(),fetchATContests()]);
+  const names=['Codeforces','CodeChef','LeetCode','AtCoder'];
+  const all=[];const statusParts=[];
+  results.forEach((r,i)=>{if(r.status==='fulfilled'){all.push(...r.value);statusParts.push(names[i]+': '+r.value.length);}else statusParts.push(names[i]+': failed');});
+  mergeContests(all);
+  processContestLifecycle();
+  if(el){el.innerHTML=statusParts.join(' · ')+' — '+all.length+' upcoming';el.className='contest-fetch-status ok';}
+  renderContests();updateBadges();
+}
+
+// ======= CONTEST PERFORMANCE =======
+let editingPerfId=null;
+
+function switchContestTab(tab){
+  state.contestTab=tab;
+  document.getElementById('contest-tab-upcoming')?.classList.toggle('active',tab==='upcoming');
+  document.getElementById('contest-tab-performance')?.classList.toggle('active',tab==='performance');
+  document.getElementById('contest-panel-upcoming')?.classList.toggle('hidden',tab!=='upcoming');
+  document.getElementById('contest-panel-performance')?.classList.toggle('hidden',tab!=='performance');
+  if(tab==='performance')renderContestPerformance();
+  else renderContests();
+}
+
+function contestPerfKey(contestId,name){
+  if(contestId)return String(contestId).toLowerCase();
+  return (name||'').toLowerCase().trim();
+}
+
+function countPerfProblems(problems,solvedLive){
+  const list=problems||[];
+  const live=list.filter(p=>p.status==='live').length;
+  const upsolved=list.filter(p=>p.status==='upsolved').length;
+  const missed=list.filter(p=>p.status==='missed').length;
+  const pending=list.filter(p=>p.status==='pending').length;
+  const liveCount=Math.max(live,solvedLive||0,0);
+  const detailed=live+upsolved+missed+pending;
+  const total=detailed>0?detailed:liveCount+upsolved+missed+pending;
+  return{live:liveCount,upsolved,missed,pending,total};
+}
+
+function buildContestAnalytics(){
+  const performances=state.contestPerformances||[];
+  const perfByKey=new Map();
+  performances.forEach(p=>{
+    const key=contestPerfKey(p.contestId,p.contestName||p.name);
+    const c=countPerfProblems(p.problems,p.solvedLive);
+    perfByKey.set(key,{id:p.id,contestId:p.contestId,name:p.contestName||p.name,platform:p.platform,date:p.contestDate||p.date,duration:p.duration||120,notes:p.notes||'',...c,source:'logged'});
+  });
+  const upsolveGroups={};
+  (state.upsolveProblems||[]).forEach(u=>{
+    if(u.isContestPlaceholder)return;
+    const key=contestPerfKey(u.contestId,u.contest);
+    if(!key)return;
+    if(!upsolveGroups[key])upsolveGroups[key]={upsolved:0,pending:0,platform:u.platform,name:u.contest};
+    if(u.status==='solved')upsolveGroups[key].upsolved++;
+    else upsolveGroups[key].pending++;
+  });
+  Object.entries(upsolveGroups).forEach(([key,g])=>{
+    const ex=perfByKey.get(key);
+    if(ex){ex.upsolved=Math.max(ex.upsolved,g.upsolved);ex.pending=Math.max(ex.pending,g.pending);ex.total=Math.max(ex.total,ex.live+ex.upsolved+ex.missed+ex.pending);}
+    else perfByKey.set(key,{contestId:null,name:g.name||'Contest',platform:g.platform||'Codeforces',date:null,live:0,upsolved:g.upsolved,missed:0,pending:g.pending,total:g.upsolved+g.pending,source:'upsolve_only'});
+  });
+  (state.contestHistory||[]).forEach(h=>{
+    const key=contestPerfKey(h.contestId,h.name);
+    if(perfByKey.has(key))return;
+    perfByKey.set(key,{contestId:h.contestId,name:h.name,platform:h.platform,date:h.date,live:0,upsolved:0,missed:0,pending:h.upsolveAdded?1:0,total:0,source:'history_only'});
+  });
+  const contests=[...perfByKey.values()].sort((a,b)=>(new Date(b.date||0))-(new Date(a.date||0)));
+  let totalLive=0,totalUpsolved=0,totalMissed=0,totalPending=0;
+  const byPlatform={};
+  contests.forEach(c=>{
+    totalLive+=c.live;totalUpsolved+=c.upsolved;totalMissed+=c.missed;totalPending+=c.pending;
+    const plat=c.platform||'Other';
+    if(!byPlatform[plat])byPlatform[plat]={contests:0,live:0,upsolved:0,missed:0,pending:0};
+    byPlatform[plat].contests++;byPlatform[plat].live+=c.live;byPlatform[plat].upsolved+=c.upsolved;
+    byPlatform[plat].missed+=c.missed;byPlatform[plat].pending+=c.pending;
+  });
+  const contestCount=contests.length;
+  const upsolveDenom=totalUpsolved+totalMissed+totalPending;
+  const upsolveRate=upsolveDenom>0?Math.round((totalUpsolved/upsolveDenom)*100):0;
+  const avgLive=contestCount>0?Math.round((totalLive/contestCount)*10)/10:0;
+  const bestPlatform=Object.entries(byPlatform).sort((a,b)=>b[1].live-a[1].live)[0];
+  const insights=[];
+  if(!contestCount)insights.push('Log contest results to track live solves vs upsolves.');
+  else{
+    insights.push(`Logged ${contestCount} contest${contestCount>1?'s':''} · ${totalLive} live solve${totalLive!==1?'s':''}.`);
+    if(upsolveDenom>0)insights.push(`Upsolve rate: ${upsolveRate}% — recovered ${totalUpsolved} of ${upsolveDenom} missed problems.`);
+    if(totalPending>0)insights.push(`${totalPending} problem${totalPending>1?'s':''} still in upsolve queue.`);
+    if(bestPlatform?.[1]?.live>0)insights.push(`Best platform (live): ${bestPlatform[0]} (${bestPlatform[1].live} solves).`);
+  }
+  return{summary:{contestCount,totalLive,totalUpsolved,totalMissed,totalPending,upsolveRate,avgLivePerContest:avgLive},byPlatform,contests,insights};
+}
+
+function renderContestPerformance(){
+  const root=document.getElementById('contest-performance-root');
+  if(!root)return;
+  const a=buildContestAnalytics();
+  const s=a.summary;
+  const maxPlat=Math.max(1,...Object.values(a.byPlatform).map(p=>p.live+p.upsolved));
+  root.innerHTML=`
+    <div class="perf-stat-row fade-in">
+      <div class="perf-stat"><div class="perf-stat-val">${s.contestCount}</div><div class="perf-stat-label">Contests</div></div>
+      <div class="perf-stat"><div class="perf-stat-val green">${s.totalLive}</div><div class="perf-stat-label">Solved live</div></div>
+      <div class="perf-stat"><div class="perf-stat-val">${s.totalUpsolved}</div><div class="perf-stat-label">Upsolved</div></div>
+      <div class="perf-stat"><div class="perf-stat-val amber">${s.totalPending}</div><div class="perf-stat-label">Pending upsolve</div></div>
+      <div class="perf-stat"><div class="perf-stat-val purple">${s.upsolveRate}%</div><div class="perf-stat-label">Upsolve rate</div></div>
+      <div class="perf-stat"><div class="perf-stat-val">${s.avgLivePerContest}</div><div class="perf-stat-label">Avg live / contest</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+      <div class="card">
+        <div class="section-head">By platform</div>
+        ${Object.keys(a.byPlatform).length?Object.entries(a.byPlatform).sort((x,y)=>y[1].live-x[1].live).map(([plat,p])=>{
+          const w=Math.round(((p.live+p.upsolved)/maxPlat)*100);
+          return`<div class="chart-row"><div class="chart-label">${esc(plat)}</div><div class="chart-bar-wrap"><div class="chart-bar" style="width:${w}%;background:var(--accent)">${p.live} live</div></div><div class="chart-count">${p.upsolved}↑</div></div>`;
+        }).join(''):'<div style="color:var(--text3);font-size:13px">No data yet</div>'}
+      </div>
+      <div class="card">
+        <div class="section-head">Insights</div>
+        ${a.insights.map(i=>`<div class="perf-insight"><i class="ti ti-bulb"></i><span>${esc(i)}</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="section-head" style="margin:0">Contest history</div>
+        <button class="btn btn-primary btn-sm" onclick="openLogContestPerformance()"><i class="ti ti-plus"></i> Log result</button>
+      </div>
+      <div class="table-wrap">
+        ${a.contests.length?`<div>${a.contests.map(c=>{
+          const rate=c.upsolved+c.missed+c.pending>0?Math.round((c.upsolved/(c.upsolved+c.missed+c.pending))*100):'—';
+          return`<div class="perf-contest-row">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:14px;font-weight:700">${esc(c.name)}</div>
+              <div style="font-size:11px;color:var(--text3);font-family:'Space Mono',monospace">${esc(c.platform)}${c.date?' · '+new Date(c.date).toLocaleDateString():''}</div>
+            </div>
+            <span class="perf-mini-stat live">${c.live} live</span>
+            <span class="perf-mini-stat up">${c.upsolved} up</span>
+            <span class="perf-mini-stat miss">${c.missed} miss</span>
+            <span class="perf-mini-stat pend">${c.pending} pend</span>
+            <span style="font-size:11px;color:var(--text3);font-family:'Space Mono',monospace">${rate}% up</span>
+            ${c.id?`<button class="btn btn-ghost btn-sm" onclick="openLogContestPerformance(${JSON.stringify(String(c.id))})"><i class="ti ti-pencil"></i></button>`:''}
+          </div>`;
+        }).join('')}</div>`:`<div class="empty" style="padding:30px"><i class="ti ti-chart-line"></i><div class="empty-title">No performance data</div><div class="empty-sub">After a contest, log how many you solved live and what you upsolved.</div></div>`}
+      </div>
+    </div>`;
+}
+
+function getContestOptionsForPerf(){
+  const opts=[];
+  const seen=new Set();
+  (state.contestHistory||[]).forEach(h=>{
+    const k=contestPerfKey(h.contestId,h.name);
+    if(seen.has(k))return;seen.add(k);
+    opts.push({id:h.contestId,name:h.name,platform:h.platform,date:h.date,duration:120});
+  });
+  (state.contests||[]).forEach(c=>{
+    const end=getContestEnd(c);
+    if(end>Date.now())return;
+    const k=contestPerfKey(c.id,c.name);
+    if(seen.has(k))return;seen.add(k);
+    opts.push({id:c.id,name:c.name,platform:c.platform,date:c.date,duration:c.duration});
+  });
+  return opts;
+}
+
+function syncPerfFromUpsolve(contestId,contestName){
+  if(!state.contestPerformances)state.contestPerformances=[];
+  const key=contestPerfKey(contestId,contestName);
+  let perf=state.contestPerformances.find(p=>contestPerfKey(p.contestId,p.contestName||p.name)===key);
+  const ups=(state.upsolveProblems||[]).filter(u=>!u.isContestPlaceholder&&contestPerfKey(u.contestId,u.contest)===key);
+  if(!ups.length)return;
+  if(!perf){
+    const sample=ups[0];
+    perf={id:Date.now()+Math.random(),contestId:contestId||sample.contestId,contestName:contestName||sample.contest,platform:sample.platform,contestDate:new Date().toISOString(),date:new Date().toISOString(),duration:120,solvedLive:0,problems:[],notes:'',loggedAt:new Date().toISOString()};
+    state.contestPerformances.push(perf);
+  }
+  if(!perf.problems)perf.problems=[];
+  ups.forEach(u=>{
+    const exists=perf.problems.some(p=>p.name===u.name);
+    if(exists)return;
+    perf.problems.push({name:u.name,rating:'',status:u.status==='solved'?'upsolved':'pending'});
+  });
+}
+
+function ensureContestPerformanceStub(c){
+  if(!state.contestPerformances)state.contestPerformances=[];
+  const key=contestPerfKey(c.id,c.name);
+  if(state.contestPerformances.some(p=>contestPerfKey(p.contestId,p.contestName||p.name)===key))return;
+  state.contestPerformances.push({
+    id:Date.now()+Math.random(),contestId:c.id,contestName:c.name,name:c.name,platform:c.platform,
+    contestDate:c.date,date:c.date,duration:c.duration||120,solvedLive:0,
+    problems:[],notes:'',loggedAt:new Date().toISOString()
+  });
+}
+
+function renderPerfProblemRows(rows){
+  const el=document.getElementById('perf-problems-list');
+  if(!el)return;
+  const list=rows||[];
+  el.innerHTML=list.map((p,i)=>`<div class="perf-problem-row" data-idx="${i}">
+    <input class="form-input" placeholder="Problem name" value="${esc(p.name||'')}" data-field="name">
+    <input class="form-input" style="max-width:80px" placeholder="Rating" value="${esc(p.rating||'')}" data-field="rating">
+    <select class="form-select form-input" style="max-width:130px" data-field="status">
+      <option value="live"${p.status==='live'?' selected':''}>Solved live</option>
+      <option value="upsolved"${p.status==='upsolved'?' selected':''}>Upsolved</option>
+      <option value="missed"${p.status==='missed'?' selected':''}>Missed</option>
+      <option value="pending"${p.status==='pending'?' selected':''}>Pending</option>
+    </select>
+    <button type="button" class="btn btn-ghost btn-sm" onclick="removePerfProblemRow(${i})"><i class="ti ti-x"></i></button>
+  </div>`).join('');
+}
+
+function addPerfProblemRow(){const rows=collectPerfProblemRows();rows.push({name:'',rating:'',status:'missed'});renderPerfProblemRows(rows);}
+function removePerfProblemRow(i){const rows=collectPerfProblemRows();rows.splice(i,1);renderPerfProblemRows(rows);}
+function collectPerfProblemRows(){
+  return [...document.querySelectorAll('#perf-problems-list .perf-problem-row')].map(row=>({
+    name:row.querySelector('[data-field=name]')?.value.trim()||'',
+    rating:row.querySelector('[data-field=rating]')?.value.trim()||'',
+    status:row.querySelector('[data-field=status]')?.value||'missed'
+  })).filter(p=>p.name);
+}
+
+function onPerfContestSelect(){
+  const sel=document.getElementById('perf-contest-select');
+  const opt=sel?.selectedOptions?.[0];
+  if(!opt||!opt.dataset.platform)return;
+  document.getElementById('perf-platform').value=opt.dataset.platform;
+}
+
+function openLogContestPerformanceForContest(contestId){
+  const c=state.contests.find(x=>String(x.id)===String(contestId));
+  if(!c)return;
+  openLogContestPerformance();
+  const sel=document.getElementById('perf-contest-select');
+  if(sel&&[...sel.options].some(o=>o.value===String(c.id)))sel.value=String(c.id);
+  onPerfContestSelect();
+}
+
+function openLogContestPerformance(editId){
+  editingPerfId=editId||null;
+  if(!state.contestPerformances)state.contestPerformances=[];
+  const opts=getContestOptionsForPerf();
+  const sel=document.getElementById('perf-contest-select');
+  sel.innerHTML='<option value="__custom__">— Custom contest —</option>'+
+    opts.map(o=>`<option value="${esc(o.id||o.name)}" data-name="${esc(o.name)}" data-platform="${esc(o.platform)}" data-date="${esc(o.date||'')}" data-duration="${o.duration||120}">${esc(o.name)} (${esc(o.platform)})</option>`).join('');
+  let perf=null;
+  if(editId)perf=state.contestPerformances.find(p=>String(p.id)===String(editId));
+  if(perf){
+    document.getElementById('modal-perf-title').textContent='Edit Contest Result';
+    const key=contestPerfKey(perf.contestId,perf.contestName||perf.name);
+    if([...sel.options].some(o=>o.value===key||o.value===String(perf.contestId)))sel.value=perf.contestId||key;
+    else sel.value='__custom__';
+    document.getElementById('perf-platform').value=perf.platform||'Codeforces';
+    document.getElementById('perf-solved-live').value=perf.solvedLive||0;
+    document.getElementById('perf-notes').value=perf.notes||'';
+    renderPerfProblemRows(perf.problems||[]);
+  }else{
+    document.getElementById('modal-perf-title').textContent='Log Contest Result';
+    document.getElementById('perf-solved-live').value='0';
+    document.getElementById('perf-notes').value='';
+    renderPerfProblemRows([]);
+    if(opts.length)sel.selectedIndex=1;
+    onPerfContestSelect();
+  }
+  openModal('modal-contest-perf');
+}
+
+function saveContestPerformance(){
+  const sel=document.getElementById('perf-contest-select');
+  const opt=sel?.selectedOptions?.[0];
+  let contestId=null,contestName='',platform=document.getElementById('perf-platform').value,date=new Date().toISOString(),duration=120;
+  if(opt&&opt.value!=='__custom__'){
+    contestId=opt.value;contestName=opt.dataset.name||opt.textContent;platform=opt.dataset.platform||platform;
+    date=opt.dataset.date||date;duration=parseInt(opt.dataset.duration,10)||120;
+  }else{
+    contestName=prompt('Contest name:');
+    if(!contestName)return;
+  }
+  const solvedLive=parseInt(document.getElementById('perf-solved-live').value,10)||0;
+  const problems=collectPerfProblemRows();
+  const notes=document.getElementById('perf-notes').value.trim();
+  const data={contestId,contestName,name:contestName,platform,contestDate:date,date,duration,solvedLive,problems,notes,loggedAt:new Date().toISOString()};
+  if(editingPerfId){
+    const p=state.contestPerformances.find(x=>String(x.id)===String(editingPerfId));
+    if(p)Object.assign(p,data);
+  }else{
+    state.contestPerformances.push({id:Date.now()+Math.random(),...data});
+  }
+  syncPerfFromUpsolve(contestId,contestName);
+  saveState();closeModal('modal-contest-perf');
+  if(state.contestTab==='performance')renderContestPerformance();
+}
+
+function renderContests(){
+  processContestLifecycle();
+  updateNotifBanner();
+  const now=Date.now();
+  const upcoming=getUpcomingContests();
+  const el=document.getElementById('contests-upcoming-list');
+  if(!upcoming.length){
+    el.innerHTML=`<div class="empty"><i class="ti ti-calendar-event"></i><div class="empty-title">No upcoming contests</div><div class="empty-sub">Click "Refresh Contests" to fetch from Codeforces, CodeChef, LeetCode & AtCoder.</div>
+      <button class="btn btn-primary" style="margin-top:16px" onclick="fetchAllContests()"><i class="ti ti-refresh"></i> Refresh Contests</button></div>`;
+    if(state.contestsLastFetched){const fs=document.getElementById('contest-fetch-status');if(fs)fs.textContent='Last fetched: '+new Date(state.contestsLastFetched).toLocaleString();}
+    return;
+  }
+  el.innerHTML=upcoming.map(c=>{
+    const diff=new Date(c.date)-now;
+    const remTags=(c.reminders||[]).map(r=>`<span class="reminder-tag"><i class="ti ti-bell"></i> ${REMINDER_LABELS[r]}</span>`).join('');
+    return`<div class="contest-item">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap">
+          <span class="plat plat-${platCode(c.platform)}"></span>
+          <span style="font-size:14px;font-weight:700">${esc(c.name)}</span>
+        </div>
+        <div style="font-size:11px;color:var(--text3);font-family:'Space Mono',monospace">${c.platform} · ${c.duration}min · ${new Date(c.date).toLocaleString()}</div>
+        ${remTags?`<div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap">${remTags}</div>`:''}
+      </div>
+      <div class="contest-actions">
+        <div class="countdown">${formatCountdown(diff)}</div>
+        ${c.url?`<a href="${c.url}" target="_blank" class="btn btn-ghost btn-sm"><i class="ti ti-external-link"></i></a>`:''}
+        <button type="button" class="btn btn-primary btn-sm" data-remind-contest="${escAttr(encodeURIComponent(String(c.id)))}"><i class="ti ti-bell"></i> Remind</button>
+        <button type="button" class="btn btn-ghost btn-sm" data-log-perf-contest="${escAttr(encodeURIComponent(String(c.id)))}" title="Log result after contest"><i class="ti ti-chart-line"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+  const fs=document.getElementById('contest-fetch-status');
+  if(fs&&state.contestsLastFetched)fs.textContent='Last fetched: '+new Date(state.contestsLastFetched).toLocaleString()+' · '+upcoming.length+' upcoming';
+}
+
+function openReminderModal(contestId){
+  state.reminderContestId=contestId;
+  const c=state.contests.find(x=>String(x.id)===String(contestId));
+  if(!c)return;
+  document.getElementById('reminder-contest-name').textContent=c.name;
+  document.getElementById('reminder-contest-time').textContent=c.platform+' · '+new Date(c.date).toLocaleString();
+  ['1d','1h','15m'].forEach(r=>{const el=document.getElementById('rem-'+r);if(el)el.checked=(c.reminders||[]).includes(r);});
+  requestNotifPermission(true);
+  openModal('modal-reminder');
+}
+
+async function requestNotifPermission(silent){
+  if(!('Notification' in window))return false;
+  if(Notification.permission==='granted'){updateNotifBanner();return true;}
+  if(Notification.permission==='denied'){if(!silent)alert('Notifications blocked. Enable them in browser settings.');return false;}
+  const perm=await Notification.requestPermission();
+  updateNotifBanner();
+  return perm==='granted';
+}
+
+function updateNotifBanner(){
+  const b=document.getElementById('contest-notif-banner');
+  if(!b)return;
+  if('Notification' in window&&Notification.permission!=='granted')b.classList.remove('hidden');
+  else b.classList.add('hidden');
+}
+
+function saveReminders(){
+  const c=state.contests.find(x=>String(x.id)===String(state.reminderContestId));
+  if(!c)return;
+  const selected=['1d','1h','15m'].filter(r=>document.getElementById('rem-'+r)?.checked);
+  c.reminders=selected;
+  c.firedReminders=(c.firedReminders||[]).filter(r=>selected.includes(r));
+  saveState();closeModal('modal-reminder');renderContests();
+  if(!selected.length){showToast('Reminders cleared for '+c.name);return;}
+  requestNotifPermission(false).then(granted=>{
+    if(granted){
+      showToast('Reminders saved. You will get browser notifications before '+c.name+' (keep this site open or pinned).');
+      sendNotification('Reminders set ✓',c.name+' — you will be notified before it starts.','reminder-saved-'+c.id);
+    }else{
+      showToast('Reminders saved, but notifications are blocked. Click Enable notifications in Contests or allow them in browser settings.');
+    }
+  });
+}
+
+function sendNotification(title,body,tag){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  try{new Notification(title,{body,icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">⚡</text></svg>',tag,silent:false});}catch(e){}
+}
+
+function onContestEnded(c){
+  if(c.upsolveAdded)return;
+  c.upsolveAdded=true;
+  ensureContestPerformanceStub(c);
+  if(!state.contestHistory)state.contestHistory=[];
+  const dup=state.contestHistory.some(h=>contestPerfKey(h.contestId,h.name)===contestPerfKey(c.id,c.name));
+  if(!dup)state.contestHistory.push({
+    contestId:c.id,name:c.name,platform:c.platform,
+    date:c.date,endedAt:new Date().toISOString(),upsolveAdded:true
+  });
+  sendNotification('Contest ended','Log your result: Contests → Performance → Log Result','contest-end-'+c.id);
+}
+
+function processContestLifecycle(){
+  const now=Date.now();
+  let changed=false;
+  state.contests.forEach(c=>{
+    const start=new Date(c.date).getTime();
+    const end=getContestEnd(c);
+    (c.reminders||[]).forEach(r=>{
+      const key=r;
+      if((c.firedReminders||[]).includes(key))return;
+      const fireAt=start-REMINDER_OFFSETS[r];
+      if(now>=fireAt&&now<start){
+        sendNotification('Contest Reminder ⏰',c.name+' starts in '+(REMINDER_LABELS[r]||r).replace(' before','')+'.','reminder-'+c.id+'-'+r);
+        if(!c.firedReminders)c.firedReminders=[];
+        c.firedReminders.push(key);
+        changed=true;
+      }
+    });
+    if(now>=end&&!c.upsolveAdded){
+      onContestEnded(c);
+      changed=true;
+    }
+  });
+  if(changed)saveState();
+}
+
+function startContestScheduler(){
+  if(contestCheckInterval)clearInterval(contestCheckInterval);
+  processContestLifecycle();
+  contestCheckInterval=setInterval(()=>{processContestLifecycle();if(state.currentPage==='contests')renderContests();updateBadges();},30000);
+}
+
+// ======= UPSOLVE =======
+function renderUpsolve(){
+  const probs=state.upsolveProblems;const el=document.getElementById('upsolve-list');
+  if(!probs.length){el.innerHTML='<div class="empty"><i class="ti ti-check"></i><div class="empty-title">No upsolving needed!</div><div class="empty-sub">Add problems from contests you couldn\'t solve.</div></div>';return;}
+  const unsolved=probs.filter(p=>p.status==='unsolved');const solved=probs.filter(p=>p.status==='solved');
+  el.innerHTML=`${unsolved.length?`<div class="upsolve-banner"><i class="ti ti-alert-triangle"></i> ${unsolved.length} problem${unsolved.length>1?'s':''} waiting to be upsolved!</div>`:''}
+    ${unsolved.map(p=>`<div class="card" style="margin-bottom:10px${p.isContestPlaceholder?';border-color:rgba(240,180,41,0.25)':''}"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+      <div><div style="font-size:14px;font-weight:700;margin-bottom:4px">${esc(p.name)}${p.isContestPlaceholder?'<span class="tag tag-amber" style="font-size:10px;margin-left:6px">contest ended</span>':''}</div><div style="font-size:12px;color:var(--text3);margin-bottom:7px">${esc(p.contest||'')} · ${p.platform}</div><div>${(p.tags||[]).map(t=>`<span class="tag tag-purple" style="margin-right:3px;font-size:10px">${t}</span>`).join('')}</div></div>
+      <div style="display:flex;flex-direction:column;gap:5px;min-width:135px">
+        ${p.url?`<a href="${p.url}" target="_blank" class="btn btn-ghost btn-sm"><i class="ti ti-external-link"></i> Open Contest</a>`:''}
+        ${p.isContestPlaceholder?`<button class="btn btn-amber btn-sm" onclick="openAddUpsolveFromContest('${String(p.contestId||'').replace(/'/g,"\\'")}')"><i class="ti ti-plus"></i> Add Problem</button>`:''}
+        <button class="btn btn-green btn-sm" onclick="solveUpsolve(${p.id})"><i class="ti ti-check"></i> Done Upsolving</button>
+        <button class="btn btn-ghost btn-sm" onclick="promoteUpsolve(${p.id})"><i class="ti ti-plus"></i> Add to Problems</button>
+      </div>
+    </div></div>`).join('')}
+    ${solved.length?`<div class="section-head" style="margin-top:14px">Completed</div>`:''}
+    ${solved.map(p=>`<div class="card card-sm" style="opacity:0.6;margin-bottom:7px"><div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:600">${esc(p.name)}</div><div style="font-size:11px;color:var(--text3);margin-top:1px">${esc(p.contest||'')}</div></div><span class="tag tag-green">solved</span></div></div>`).join('')}`;
+}
+function openAddUpsolveFromContest(contestId){
+  const c=state.contests.find(x=>String(x.id)===String(contestId));
+  openAddUpsolve();
+  if(c){
+    document.getElementById('u-contest').value=c.name;
+    document.getElementById('u-platform').value=c.platform;
+  }
+}
+function solveUpsolve(id){
+  const p=state.upsolveProblems.find(x=>x.id===id);
+  if(p){
+    p.status='solved';
+    syncPerfFromUpsolve(p.contestId,p.contest);
+    const key=contestPerfKey(p.contestId,p.contest);
+    const perf=state.contestPerformances?.find(x=>contestPerfKey(x.contestId,x.contestName||x.name)===key);
+    if(perf?.problems){
+      const row=perf.problems.find(pr=>pr.name===p.name);
+      if(row)row.status='upsolved';
+      else perf.problems.push({name:p.name,rating:'',status:'upsolved'});
+    }
+    saveState();renderUpsolve();updateBadges();
+    if(state.contestTab==='performance')renderContestPerformance();
+  }
+}
+function openAddUpsolve(){openModal('modal-upsolve');}
+function saveUpsolve(){
+  const name=document.getElementById('u-name').value.trim();if(!name){alert('Enter a problem name.');return;}
+  const tags=parseTagsInput(document.getElementById('u-tags').value);
+  if(!tags.length){alert('Please add at least one tag.');return;}
+  const contest=document.getElementById('u-contest').value.trim();
+  const platform=document.getElementById('u-platform').value;
+  state.upsolveProblems.push({id:Date.now(),name,platform,contest,tags,status:'unsolved'});
+  syncPerfFromUpsolve(null,contest);
+  saveState();closeModal('modal-upsolve');renderUpsolve();
+}
+function promoteUpsolve(id){
+  const p=state.upsolveProblems.find(x=>x.id===id);if(!p)return;
+  state.editingId=null;
+  document.getElementById('p-name').value=p.name;document.getElementById('p-platform').value=p.platform;
+  document.getElementById('p-tags').value=(p.tags||[]).join(', ');
+  ['p-rating','p-url','p-code','p-errors','p-concept'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('p-attempts').value='0';
+  document.getElementById('p-classification-group').classList.add('hidden');
+  populateTagSuggestions();renderTagChipPicker([]);
+  openModal('modal-problem');
+}
+
+// ======= ANALYSIS =======
+function renderAnalysis(){renderTopicAnalysis();}
+
+function renderTopicAnalysis(){
+  const ts=getTopicStats();
+  const sorted=Object.entries(ts).filter(([t])=>t!==UNCATEGORIZED_TAG).sort((a,b)=>b[1].total-a[1].total);
+  const el=document.getElementById('atab-topics');
+  if(!sorted.length){el.innerHTML='<div class="empty"><div class="empty-title">No tag data yet</div><div class="empty-sub">Add problems with tags or sync Codeforces to get started.</div></div>';return;}
+
+  const maxTotal=Math.max(...sorted.map(([,s])=>s.total),1);
+  const untagged=getUntaggedCount();
+  el.innerHTML=`
+    ${untagged?`<div class="upsolve-banner" style="margin-bottom:14px"><i class="ti ti-alert-triangle"></i> ${untagged} problem${untagged>1?'s':''} still tagged as Uncategorized. <span style="cursor:pointer;text-decoration:underline" ${dataNavTag(UNCATEGORIZED_TAG)}>Fix them →</span></div>`:''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+      <div class="card card-sm">
+        <div class="section-head">Problems per Tag</div>
+        <div class="vbar-wrap">
+          ${sorted.slice(0,8).map(([t,s])=>{
+            const h=Math.max(4,Math.round((s.total/maxTotal)*110));
+            const col=s.acc>1.5?'var(--red)':s.acc>0.5?'var(--amber)':'var(--green)';
+            return`<div class="vbar-col" style="cursor:pointer" ${dataNavTag(t)}><div class="vbar-count">${s.total}</div><div class="vbar" style="height:${h}px;background:${col};width:100%"></div><div class="vbar-label">${t.substring(0,7)}</div></div>`;
+          }).join('')}
+        </div>
+      </div>
+      <div class="card card-sm">
+        <div class="section-head">Tag Health Overview</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${sorted.map(([t,s])=>{
+            const col=s.acc>1.5?'tag-red':s.acc>0.5?'tag-amber':'tag-green';
+            return`<span class="tag ${col}" style="font-size:11px;cursor:pointer" ${dataNavTag(t)} title="${s.confident} confident · ${s.resolve} re-solve · ${Math.round(s.acc*10)/10} avg wrong">${t} (${s.total})</span>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-head">Tag Breakdown — Full Statistics</div>
+      <div class="table-wrap" style="margin-top:8px">
+        <table>
+          <thead><tr><th>Tag</th><th>Total</th><th>Confident</th><th>Re-Solve</th><th>Avg Wrong</th><th>Health</th></tr></thead>
+          <tbody>
+            ${sorted.map(([tag,s])=>{
+              const health=s.acc>1.5?'Weak':s.acc>0.5?'Moderate':'Strong';
+              const hcol=s.acc>1.5?'tag-red':s.acc>0.5?'tag-amber':'tag-green';
+              return`<tr style="cursor:pointer" ${dataNavTag(tag)}>
+                <td><span class="tag tag-purple">${esc(tag)}</span></td>
+                <td style="font-family:'Space Mono',monospace;font-weight:700">${s.total}</td>
+                <td style="color:var(--teal);font-family:'Space Mono',monospace">${s.confident}</td>
+                <td style="color:var(--amber);font-family:'Space Mono',monospace">${s.resolve}</td>
+                <td style="font-family:'Space Mono',monospace;color:${s.acc>1?'var(--red)':'var(--text2)'}">${Math.round(s.acc*10)/10}</td>
+                <td><span class="tag ${hcol}">${health}</span></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:14px"><button class="btn btn-ghost btn-sm" onclick="nav('tags')"><i class="ti ti-tags"></i> Open Tag Explorer</button></div>`;
+}
+
+function renderPlatformAnalysis(){
+  const ps={};
+  state.problems.forEach(p=>{if(!ps[p.platform])ps[p.platform]={total:0,confident:0,resolve:0,wrong:0};ps[p.platform].total++;if(p.classification==='confident')ps[p.platform].confident++;else if(p.classification==='resolve')ps[p.platform].resolve++;ps[p.platform].wrong+=(p.attempts||0);});
+  const el=document.getElementById('atab-platforms');
+  const entries=Object.entries(ps).sort((a,b)=>b[1].total-a[1].total);
+  if(!entries.length){el.innerHTML='<div class="empty"><div class="empty-title">No data yet</div></div>';return;}
+
+  // Difficulty distribution per platform
+  const diffMap={};
+  state.problems.forEach(p=>{
+    if(!diffMap[p.platform])diffMap[p.platform]={easy:0,med:0,hard:0,other:0};
+    const r=p.rating;
+    if(r==='Easy'||parseInt(r)<1200)diffMap[p.platform].easy++;
+    else if(r==='Medium'||(parseInt(r)>=1200&&parseInt(r)<1800))diffMap[p.platform].med++;
+    else if(r==='Hard'||parseInt(r)>=1800)diffMap[p.platform].hard++;
+    else diffMap[p.platform].other++;
+  });
+
+  el.innerHTML=`
+    <div class="topic-grid" style="margin-bottom:16px">
+      ${entries.map(([plat,s])=>`<div class="topic-card">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:9px"><span class="plat plat-${platCode(plat)}" style="width:9px;height:9px"></span><span style="font-size:14px;font-weight:700">${plat}</span></div>
+        <div class="topic-bar"><div class="topic-bar-fill" style="width:${Math.round((s.confident/Math.max(1,s.total))*100)}%;background:var(--green)"></div></div>
+        <div class="topic-stats"><span>${s.total} problems</span><span>${Math.round(s.confident/Math.max(1,s.total)*100)}% confident</span></div>
+        <div style="font-size:10px;color:var(--text3);margin-top:5px">Avg wrong: ${s.total?Math.round(s.wrong/s.total*10)/10:0}</div>
+      </div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="section-head">Difficulty Distribution by Platform</div>
+      ${entries.map(([plat,s])=>{
+        const d=diffMap[plat]||{};const tot=s.total;
+        const ep=Math.round((d.easy||0)/tot*100);const mp=Math.round((d.med||0)/tot*100);const hp=Math.round((d.hard||0)/tot*100);
+        return`<div style="margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><span class="plat plat-${platCode(plat)}"></span><span style="font-size:13px;font-weight:600;min-width:100px">${plat}</span><span style="font-size:11px;color:var(--text3)">${tot} problems</span></div>
+          <div style="height:14px;border-radius:4px;overflow:hidden;display:flex;gap:1px">
+            ${ep?`<div style="width:${ep}%;background:var(--green);border-radius:4px 0 0 4px;height:100%" title="Easy: ${ep}%"></div>`:''}
+            ${mp?`<div style="width:${mp}%;background:var(--amber);height:100%" title="Med: ${mp}%"></div>`:''}
+            ${hp?`<div style="width:${hp}%;background:var(--red);border-radius:0 4px 4px 0;height:100%" title="Hard: ${hp}%"></div>`:''}
+          </div>
+          <div style="display:flex;gap:9px;margin-top:4px;font-size:10px;color:var(--text3);font-family:'Space Mono',monospace">
+            ${ep?`<span style="color:var(--green)">E:${ep}%</span>`:''}
+            ${mp?`<span style="color:var(--amber)">M:${mp}%</span>`:''}
+            ${hp?`<span style="color:var(--red)">H:${hp}%</span>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function renderRatingAnalysis(){
+  // Vertical bar chart for difficulty
+  const bins={Easy:0,Medium:0,Hard:0,'<1200':0,'1200-1599':0,'1600-1999':0,'2000+':0};
+  state.problems.forEach(p=>{
+    if(p.rating==='Easy')bins['Easy']++;else if(p.rating==='Medium')bins['Medium']++;else if(p.rating==='Hard')bins['Hard']++;
+    else{const n=parseInt(p.rating)||0;if(n>0){if(n<1200)bins['<1200']++;else if(n<1600)bins['1200-1599']++;else if(n<2000)bins['1600-1999']++;else bins['2000+']++;}}
+  });
+  const active=Object.entries(bins).filter(([,v])=>v>0);
+  const maxV=Math.max(...active.map(([,v])=>v),1);
+  const colMap={Easy:'var(--green)',Medium:'var(--amber)',Hard:'var(--red)','<1200':'var(--green)','1200-1599':'var(--amber)','1600-1999':'var(--red)','2000+':'var(--purple)'};
+  document.getElementById('atab-ratings').innerHTML=`
+    <div class="card" style="margin-bottom:14px">
+      <div class="section-head">Problems by Difficulty (Vertical)</div>
+      <div class="vbar-wrap" style="height:150px">
+        ${active.map(([label,count])=>{const h=Math.max(4,Math.round((count/maxV)*140));return`<div class="vbar-col"><div class="vbar-count">${count}</div><div class="vbar" style="height:${h}px;background:${colMap[label]||'var(--accent)'};width:100%"></div><div class="vbar-label">${label}</div></div>`;}).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-head">Breakdown</div>
+      ${active.map(([label,count])=>{const pct=Math.round((count/maxV)*100);return`<div class="chart-row"><div class="chart-label">${label}</div><div class="chart-bar-wrap"><div class="chart-bar" style="width:${Math.max(8,pct)}%;background:${colMap[label]||'var(--accent)'}">${count}</div></div><div class="chart-count">${count}</div></div>`;}).join('')}
+    </div>`;
+}
+
+function renderWeakAnalysis(){
+  const ts=getTopicStats();
+  const weak=Object.entries(ts).filter(([t,s])=>t!==UNCATEGORIZED_TAG&&s.acc>0.5&&s.total>=1).sort((a,b)=>b[1].acc-a[1].acc);
+  const el=document.getElementById('atab-weak');
+  if(!weak.length){el.innerHTML='<div class="empty"><div class="empty-title">No weak tags detected</div><div class="empty-sub">Keep solving and tagging problems. Tags with high wrong-attempt rates will appear here.</div></div>';return;}
+
+  const maxAcc=Math.max(...weak.map(([,s])=>s.acc),1);
+  el.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+      <div class="card card-red card-sm">
+        <div class="section-head" style="color:var(--red)">Weakest Tags</div>
+        ${weak.slice(0,5).map(([t,s])=>`
+          <div class="weak-card" style="margin-bottom:8px;cursor:pointer" ${dataNavTag(t)}>
+            <div class="weak-card-top"><span class="weak-card-name">${t}</span><span class="weak-card-score">${Math.round(s.acc*10)/10} avg wrong</span></div>
+            <div style="font-size:11px;color:var(--text3)">${s.total} problems · ${s.resolve} re-solve · ${s.confident} confident</div>
+            <div class="weak-mini-bar"><div class="weak-mini-fill" style="width:${Math.min(100,Math.round((s.acc/maxAcc)*100))}%"></div></div>
+          </div>`).join('')}
+      </div>
+      <div class="card card-green card-sm">
+        <div class="section-head" style="color:var(--green)">Strongest Tags</div>
+        ${Object.entries(ts).filter(([t,s])=>t!==UNCATEGORIZED_TAG&&s.acc<=0.3&&s.total>=2).sort((a,b)=>b[1].total-a[1].total).slice(0,6).map(([t,s])=>`
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);cursor:pointer" ${dataNavTag(t)}>
+            <span style="font-size:13px;font-weight:600">${t}</span>
+            <span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--green)">${s.confident}/${s.total} confident</span>
+          </div>`).join('')||'<div style="color:var(--text3);font-size:13px">Solve more tagged problems to identify strong areas.</div>'}
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-head">Tag Comparison — Re-Solve vs Confident</div>
+      ${Object.entries(ts).filter(([t])=>t!==UNCATEGORIZED_TAG).sort((a,b)=>b[1].total-a[1].total).slice(0,12).map(([tag,s])=>{
+        const tot=s.total||1;
+        const cp=Math.round(s.confident/tot*100);const rp=Math.round(s.resolve/tot*100);
+        return`<div style="margin-bottom:12px;cursor:pointer" ${dataNavTag(tag)}>
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:13px;font-weight:600">${tag}</span><span style="font-size:11px;color:var(--text3);font-family:'Space Mono',monospace">${s.total} total · ${Math.round(s.acc*10)/10} avg wrong</span></div>
+          <div style="height:14px;border-radius:4px;overflow:hidden;display:flex;gap:1px">
+            ${cp?`<div style="width:${cp}%;background:var(--teal);height:100%" title="Confident: ${s.confident}"></div>`:''}
+            ${rp?`<div style="width:${rp}%;background:var(--amber);height:100%" title="Re-Solve: ${s.resolve}"></div>`:''}
+            ${100-cp-rp>0?`<div style="flex:1;background:var(--bg4);height:100%" title="Unclassified"></div>`:''}
+          </div>
+          <div style="display:flex;gap:9px;margin-top:4px;font-size:10px;font-family:'Space Mono',monospace">
+            <span style="color:var(--teal)">Confident: ${s.confident}</span>
+            <span style="color:var(--amber)">Re-Solve: ${s.resolve}</span>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function renderPatternAnalysis(){
+  const probs=state.problems;const total=probs.length;
+  const avg=total?Math.round(probs.reduce((a,p)=>a+(p.attempts||0),0)/total*10)/10:0;
+  const confidentRate=total?Math.round(probs.filter(p=>p.classification==='confident').length/total*100):0;
+  const noNotes=probs.filter(p=>!p.concept&&!p.errors&&p.imported).length;
+  const worst=probs.filter(p=>p.attempts>2).sort((a,b)=>b.attempts-a.attempts).slice(0,5);
+  const ts=getTopicStats();const weakTopics=Object.entries(ts).filter(([t,s])=>t!==UNCATEGORIZED_TAG&&s.acc>1.5&&s.total>=2).map(([t])=>t);
+  const untagged=getUntaggedCount();
+  const recs=[];
+  if(untagged)recs.push(`<strong style="color:var(--amber)">${untagged} problems</strong> need proper tags. Open Tag Explorer to fix Uncategorized problems.`);
+  if(weakTopics.length)recs.push(`Focus on <strong style="color:var(--red)">${weakTopics.slice(0,2).join(' and ')}</strong> — highest error rates per tag. Add 3–5 targeted problems.`);
+  const lowConf=Object.entries(ts).filter(([t,s])=>t!==UNCATEGORIZED_TAG&&s.total>=3&&s.confident/s.total<0.3);
+  if(lowConf.length)recs.push(`Tags with low confidence: <strong style="color:var(--amber)">${lowConf.slice(0,2).map(([t])=>t).join(', ')}</strong> — only ${Math.round(lowConf[0][1].confident/lowConf[0][1].total*100)}% confident.`);
+  if(avg>2)recs.push(`Avg ${avg} wrong attempts — try planning your approach before coding.`);
+  if(noNotes>0)recs.push(`${noNotes} synced problems have no notes. Add error notes and key concepts to enrich your vault!`);
+  const rq=probs.filter(p=>p.classification==='resolve');
+  if(rq.length>5)recs.push(`${rq.length} problems in the re-solve list. Work through these before adding more.`);
+  if(!recs.length)recs.push("Great work! Your tags look healthy — keep classifying problems as you go.");
+  document.getElementById('atab-patterns').innerHTML=`
+    <div class="stats-row" style="margin-bottom:16px">
+      <div class="stat-card" style="--stat-color:var(--purple)"><div class="stat-label">Tags Used</div><div class="stat-value" style="color:var(--purple)">${Object.keys(ts).filter(t=>t!==UNCATEGORIZED_TAG).length}</div></div>
+      <div class="stat-card" style="--stat-color:var(--red)"><div class="stat-label">Avg Wrong</div><div class="stat-value" style="color:${avg>2?'var(--red)':'var(--amber)'}">${avg}</div></div>
+      <div class="stat-card" style="--stat-color:var(--green)"><div class="stat-label">Confident Rate</div><div class="stat-value" style="color:var(--green)">${confidentRate}%</div></div>
+      <div class="stat-card" style="--stat-color:var(--amber)"><div class="stat-label">Untagged</div><div class="stat-value" style="color:var(--amber)">${untagged}</div></div>
+    </div>
+    ${worst.length?`<div class="card" style="margin-bottom:14px">
+      <div class="section-head">Toughest Problems</div>
+      ${worst.map(p=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)">
+        <div><div style="font-size:13px;font-weight:600">${esc(p.name)}</div><div style="font-size:11px;color:var(--text3)">${formatTags(p.tags)}</div></div>
+        <div style="display:flex;gap:7px;align-items:center"><span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--red);font-weight:700">${p.attempts} wrong</span><span class="tag ${ratingTag(p.rating)}">${p.rating||'—'}</span></div>
+      </div>`).join('')}
+    </div>`:''}
+    <div class="card">
+      <div class="section-head">Recommendations</div>
+      ${recs.map(r=>`<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><i class="ti ti-bulb" style="color:var(--amber);font-size:15px;margin-top:2px;flex-shrink:0"></i><div style="font-size:13px;line-height:1.6;color:var(--text2)">${r}</div></div>`).join('')}
+    </div>`;
+}
+
+// ======= NOTES =======
+function renderMarkdown(md){
+  if(typeof marked!=='undefined')return marked.parse(md||'');
+  return esc(md||'').replace(/\n/g,'<br>');
+}
+
+function getAllNoteTopics(){
+  const fromNotes=[...new Set(state.notes.map(n=>n.topic).filter(Boolean))];
+  return [...new Set([...NOTE_TOPICS,...fromNotes])].sort();
+}
+
+function renderNotes(){
+  const search=(document.getElementById('note-search').value||'').toLowerCase();
+  const topicFilter=document.getElementById('note-filter-topic').value;
+  const chipFilter=state.noteTopicFilter||'';
+
+  const topics=getAllNoteTopics();
+  const ts=document.getElementById('note-filter-topic');const cur=ts.value;
+  ts.innerHTML='<option value="">All topics</option>'+topics.map(t=>`<option${t===cur?' selected':''}>${esc(t)}</option>`).join('');
+
+  const chipsEl=document.getElementById('note-topic-chips');
+  const topicCounts={};
+  state.notes.forEach(n=>{if(n.topic)topicCounts[n.topic]=(topicCounts[n.topic]||0)+1;});
+  chipsEl.innerHTML=`<button class="notes-chip${!chipFilter?' active':''}" onclick="filterNoteTopic('')">All<span class="notes-chip-count">${state.notes.length}</span></button>`+
+    topics.map(t=>`<button class="notes-chip${chipFilter===t?' active':''}" onclick='filterNoteTopic(${JSON.stringify(t)})'>${esc(t)}<span class="notes-chip-count">${topicCounts[t]||0}</span></button>`).join('');
+
+  let filtered=state.notes.filter(n=>{
+    if(search&&!n.title.toLowerCase().includes(search)&&!n.content.toLowerCase().includes(search)&&!(n.topic||'').toLowerCase().includes(search))return false;
+    const activeTopic=chipFilter||topicFilter;
+    if(activeTopic&&n.topic!==activeTopic)return false;
+    return true;
+  }).sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt));
+
+  const el=document.getElementById('notes-list');
+  if(!filtered.length){
+    el.innerHTML=`<div class="empty"><i class="ti ti-notes"></i><div class="empty-title">${state.notes.length?'No matching notes':'No notes yet'}</div><div class="empty-sub">${state.notes.length?'Try a different search or filter.':'Create your first topic-wise study note.'}</div>${!state.notes.length?'<button class="btn btn-primary" style="margin-top:16px" onclick="openAddNote()"><i class="ti ti-plus"></i> Create Note</button>':''}</div>`;
+    return;
+  }
+
+  const grouped={};
+  filtered.forEach(n=>{const t=n.topic||'Uncategorized';if(!grouped[t])grouped[t]=[];grouped[t].push(n);});
+  const sortedTopics=Object.keys(grouped).sort();
+
+  el.innerHTML=sortedTopics.map(topic=>`
+    <div class="notes-topic-group fade-in">
+      <div class="notes-topic-heading">${esc(topic)} <span>${grouped[topic].length} note${grouped[topic].length>1?'s':''}</span></div>
+      <div class="notes-grid">
+        ${grouped[topic].map(n=>{
+          const preview=(n.content||'').replace(/[#*`>\-\[\]]/g,'').substring(0,120);
+          return`<div class="note-card" onclick="editNote(${n.id})">
+            <div class="note-card-topic">${esc(n.topic)}</div>
+            <div class="note-card-title">${esc(n.title)}</div>
+            <div class="note-card-preview">${esc(preview)||'No content yet'}</div>
+            <div class="note-card-meta">Updated ${new Date(n.updatedAt).toLocaleDateString()}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function filterNoteTopic(topic){
+  state.noteTopicFilter=topic;
+  document.getElementById('note-filter-topic').value=topic;
+  renderNotes();
+}
+
+function switchNoteTab(tab){
+  document.getElementById('note-tab-edit').classList.toggle('active',tab==='edit');
+  document.getElementById('note-tab-preview').classList.toggle('active',tab==='preview');
+  document.getElementById('note-edit-pane').classList.toggle('hidden',tab!=='edit');
+  document.getElementById('note-preview-pane').classList.toggle('hidden',tab!=='preview');
+  if(tab==='preview')document.getElementById('n-preview').innerHTML=renderMarkdown(document.getElementById('n-content').value);
+}
+
+function openAddNote(){
+  state.editingNoteId=null;
+  document.getElementById('modal-note-title').textContent='New Note';
+  document.getElementById('save-note-btn').textContent='Save Note';
+  document.getElementById('note-delete-btn').classList.add('hidden');
+  document.getElementById('n-title').value='';
+  document.getElementById('n-topic').value='';
+  document.getElementById('n-content').value='';
+  switchNoteTab('edit');
+  openModal('modal-note');
+}
+
+function editNote(id){
+  const n=state.notes.find(x=>x.id===id);if(!n)return;
+  state.editingNoteId=id;
+  document.getElementById('modal-note-title').textContent='Edit Note';
+  document.getElementById('save-note-btn').textContent='Save Changes';
+  document.getElementById('note-delete-btn').classList.remove('hidden');
+  document.getElementById('n-title').value=n.title||'';
+  document.getElementById('n-topic').value=n.topic||'';
+  document.getElementById('n-content').value=n.content||'';
+  switchNoteTab('edit');
+  openModal('modal-note');
+}
+
+function saveNote(){
+  const title=document.getElementById('n-title').value.trim();
+  const topic=document.getElementById('n-topic').value.trim();
+  const content=document.getElementById('n-content').value;
+  if(!title||!topic){alert('Please fill in title and topic.');return;}
+  const now=new Date().toISOString();
+  if(state.editingNoteId){
+    const n=state.notes.find(x=>x.id===state.editingNoteId);
+    if(n){n.title=title;n.topic=topic;n.content=content;n.updatedAt=now;}
+  }else{
+    state.notes.push({id:Date.now()+Math.random(),title,topic,content,createdAt:now,updatedAt:now});
+  }
+  saveState();closeModal('modal-note');renderNotes();
+}
+
+function deleteNote(){
+  if(!state.editingNoteId)return;
+  if(!confirm('Delete this note?'))return;
+  state.notes=state.notes.filter(n=>n.id!==state.editingNoteId);
+  state.editingNoteId=null;
+  saveState();closeModal('modal-note');renderNotes();
+}
+
+// ======= MODALS =======
+function openModal(id){document.getElementById(id).classList.remove('hidden');}
+function closeModal(id){document.getElementById(id).classList.add('hidden');}
+document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});});
+
+// ======= ADMIN =======
+async function renderAdmin(){
+  const tbody=document.getElementById('admin-users-tbody');
+  if(!tbody)return;
+  tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3)">Loading...</td></tr>';
+  try{
+    const users=await api.adminUsers();
+    if(!users.length){tbody.innerHTML='<tr><td colspan="6">No users yet</td></tr>';return;}
+    tbody.innerHTML=users.map(u=>`<tr>
+      <td>${esc(u.username)}</td><td>${esc(u.email)}</td>
+      <td><span class="tag ${u.role==='admin'?'tag-purple':'tag-gray'}">${esc(u.role)}</span></td>
+      <td>${u.problemCount}</td><td>${u.noteCount}</td>
+      <td style="font-family:'Space Mono',monospace;font-size:11px">${new Date(u.createdAt).toLocaleDateString()}</td>
+    </tr>`).join('');
+  }catch(e){tbody.innerHTML=`<tr><td colspan="6" style="color:var(--red)">${esc(e.message)}</td></tr>`;}
+}
+
+function openProfileModal(){
+  const name=window._userProfile?.displayName||'';
+  const v=prompt('Display name (profile):',name);
+  if(v===null)return;
+  window._userProfile=window._userProfile||{};
+  window._userProfile.displayName=v.trim();
+  saveState();
+  const u=window.getAuthUser();
+  if(u){document.getElementById('user-display').textContent=window._userProfile.displayName||u.username;}
+}
+
+function saveContest(){
+  const name=document.getElementById('c-name').value.trim();
+  if(!name){alert('Enter contest name.');return;}
+  const dateVal=document.getElementById('c-date').value;
+  if(!dateVal){alert('Select date and time.');return;}
+  state.contests.push({
+    id:'manual-'+Date.now(),name,platform:document.getElementById('c-platform').value,
+    date:new Date(dateVal).toISOString(),
+    duration:parseInt(document.getElementById('c-dur').value,10)||120,
+    source:'manual',reminders:[],firedReminders:[],upsolveAdded:false
+  });
+  saveState();closeModal('modal-contest');renderContests();
+}
+
+// Tag / problem click delegation + expose handlers for inline onclick elsewhere
+initTagClickDelegation();
+window.initTagClickDelegation=initTagClickDelegation;
+document.addEventListener('click',function(e){
+  const delBtn=e.target.closest('[data-delete-problem]');
+  if(delBtn){deleteProblem(delBtn.getAttribute('data-delete-problem'));return;}
+  const viewBtn=e.target.closest('[data-view-problem]');
+  if(viewBtn){viewProblem(viewBtn.getAttribute('data-view-problem'));return;}
+  const editBtn=e.target.closest('[data-edit-problem]');
+  if(editBtn){editProblem(editBtn.getAttribute('data-edit-problem'));return;}
+  const remindBtn=e.target.closest('[data-remind-contest]');
+  if(remindBtn){
+    let id=remindBtn.getAttribute('data-remind-contest');
+    try{id=decodeURIComponent(id);}catch(err){}
+    openReminderModal(id);
+    return;
+  }
+  const logPerfBtn=e.target.closest('[data-log-perf-contest]');
+  if(logPerfBtn){
+    let id=logPerfBtn.getAttribute('data-log-perf-contest');
+    try{id=decodeURIComponent(id);}catch(err){}
+    openLogContestPerformanceForContest(id);
+    return;
+  }
+});
+window.deleteProblem=deleteProblem;
+window.openReminderModal=openReminderModal;
+window.showToast=showToast;
+window.navToTag=navToTag;
+window.openTagDetail=openTagDetail;
+window.renderTagExplorer=renderTagExplorer;
+window.renderTagDetail=renderTagDetail;
+window.nav=nav;
+
+// App init runs after login via bootstrap.js enterApp()
+</script>
+</body>
+</html>

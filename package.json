@@ -1,0 +1,15 @@
+{
+  "name": "cpvault",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "db:up": "docker compose up -d postgres",
+    "db:init": "npm run db:init --prefix backend",
+    "dev:api": "npm run dev --prefix backend",
+    "dev:web": "npm run dev --prefix frontend",
+    "build:web": "npm run build --prefix frontend",
+    "build": "npm run build:web",
+    "start": "npm run build:web && npm start --prefix backend",
+    "start:prod": "NODE_ENV=production npm start --prefix backend"
+  }
+}

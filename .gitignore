@@ -1,0 +1,21 @@
+# Dependencies (reinstalled on deploy)
+node_modules/
+
+# Secrets — NEVER commit (set these in Render / Vercel dashboards)
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env
+frontend/.env.local
+
+# Build output (Vercel builds frontend; optional to commit)
+frontend/dist/
+
+# Logs & OS
+*.log
+.DS_Store
+DEPLOY.md
+DEPLOY_RENDER_VERCEL_NEON.md
+SETUP_MAC.md
+cp-vault-v3.html

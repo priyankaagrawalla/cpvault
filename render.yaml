@@ -1,0 +1,27 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# Connect your GitHub repo and use "New Blueprint" to create both services.
+
+services:
+  - type: web
+    name: cpvault
+    runtime: node
+    plan: free
+    buildCommand: npm install --prefix frontend && npm run build --prefix frontend && npm install --prefix backend
+    startCommand: npm run start:prod --prefix backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cpvault-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+
+databases:
+  - name: cpvault-db
+    plan: free
+    databaseName: cpvault
+    user: cpvault
