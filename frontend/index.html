@@ -830,8 +830,13 @@ const REMINDER_LABELS={'1d':'1 day before','1h':'1 hour before','15m':'15 min be
 const REMINDER_OFFSETS={'1d':86400000,'1h':3600000,'15m':900000};
 let contestCheckInterval=null;
 
+function sameId(a,b){
+  return String(a)===String(b);
+}
+
 function migrateProblems(){
   state.problems.forEach(p=>{
+    if(p.id!=null)p.id=String(p.id);
     if(p.classification===undefined){
       if(p.shouldResolve===true)p.classification='resolve';
       else if(p.shouldResolve===false&&p.status==='active')p.classification='confident';
@@ -855,6 +860,7 @@ function migrateProblems(){
 
 let saveStateTimer=null;
 let saveStateInFlight=false;
+let saveStateNeedsRetry=false;
 
 async function loadStateFromServer(){
   const data=await api.getData();
@@ -868,7 +874,7 @@ async function loadStateFromServer(){
     revisionHistory:data.revisionHistory||[],
     contestHistory:data.contestHistory||[],
     contestPerformances:data.contestPerformances||[],
-    notes:data.notes||[],
+    notes:(data.notes||[]).map(n=>({...n,id:n.id!=null?String(n.id):n.id})),
     contestsLastFetched:data.contestsLastFetched||null,
     currentPage:state.currentPage||'dashboard',
     pendingImport:[],
@@ -888,12 +894,24 @@ function saveState(){
   updateBadges();
   if(!window.getAuthToken||!window.getAuthToken())return;
   clearTimeout(saveStateTimer);
-  saveStateTimer=setTimeout(flushSaveState,400);
+  saveStateTimer=setTimeout(()=>void flushSaveState(),400);
+}
+
+/** Wait for an in-flight save, then persist immediately (use after editing problems/notes). */
+async function saveStateNow(){
+  clearTimeout(saveStateTimer);
+  while(saveStateInFlight)await new Promise(r=>setTimeout(r,30));
+  await flushSaveState();
 }
 
 async function flushSaveState(){
-  if(saveStateInFlight||!window.getAuthToken())return;
+  if(!window.getAuthToken())return;
+  if(saveStateInFlight){
+    saveStateNeedsRetry=true;
+    return;
+  }
   saveStateInFlight=true;
+  saveStateNeedsRetry=false;
   try{
     const payload={
       problems:state.problems,
@@ -914,8 +932,16 @@ async function flushSaveState(){
       profile:window._userProfile||{}
     };
     await api.saveData(payload);
-  }catch(e){console.error('Save failed',e);}
-  saveStateInFlight=false;
+  }catch(e){
+    console.error('Save failed',e);
+    if(typeof showToast==='function')showToast('Could not save to server — try again');
+  }finally{
+    saveStateInFlight=false;
+    if(saveStateNeedsRetry){
+      saveStateNeedsRetry=false;
+      void flushSaveState();
+    }
+  }
 }
 
 async function persistHandles(){
@@ -1050,7 +1076,7 @@ function confirmImport(){
   const toImport=state.pendingImport.length>200?[...checked.map(i=>state.pendingImport[i]),...state.pendingImport.slice(200)]:checked.map(i=>state.pendingImport[i]);
   let added=0;
   for(const p of toImport){
-    state.problems.push({id:Date.now()+Math.random(),name:p.name,platform:p.platform,url:p.url||'',rating:p.rating||'',tags:normalizeTags(p.tags||[]).length?normalizeTags(p.tags||[]):[UNCATEGORIZED_TAG],attempts:p.attempts||0,code:'',errors:'',concept:'',classification:null,date:p.date||new Date().toISOString(),imported:true});
+    state.problems.push({id:String(Date.now()+Math.random()),name:p.name,platform:p.platform,url:p.url||'',rating:p.rating||'',tags:normalizeTags(p.tags||[]).length?normalizeTags(p.tags||[]):[UNCATEGORIZED_TAG],attempts:p.attempts||0,code:'',errors:'',concept:'',classification:null,date:p.date||new Date().toISOString(),imported:true});
     added++;
   }
   saveState();closeModal('modal-import');
@@ -1587,8 +1613,8 @@ function openAddProblem(){
   openModal('modal-problem');
 }
 function editProblem(id){
-  const p=state.problems.find(x=>String(x.id)===String(id));if(!p)return;
-  state.editingId=id;
+  const p=state.problems.find(x=>sameId(x.id,id));if(!p)return;
+  state.editingId=String(id);
   document.getElementById('modal-prob-title').textContent='Edit Problem';
   document.getElementById('save-prob-btn').textContent='Save Changes';
   document.getElementById('p-classification-group').classList.remove('hidden');
@@ -1604,7 +1630,7 @@ function getClassificationValue(){
   const v=document.getElementById('p-classification').value;
   return v==='resolve'||v==='confident'?v:null;
 }
-function saveProblem(){
+async function saveProblem(){
   const name=document.getElementById('p-name').value.trim();const platform=document.getElementById('p-platform').value;
   if(!name||!platform){alert('Please fill in problem name and platform.');return;}
   const tags=parseTagsInput(document.getElementById('p-tags').value);
@@ -1612,15 +1638,33 @@ function saveProblem(){
   const finalTags=tags.includes(UNCATEGORIZED_TAG)&&tags.length>1?tags.filter(t=>t!==UNCATEGORIZED_TAG):tags;
   const classification=getClassificationValue();
   const data={name,platform,url:document.getElementById('p-url').value.trim(),rating:document.getElementById('p-rating').value.trim(),tags:finalTags,attempts:parseInt(document.getElementById('p-attempts').value)||0,code:document.getElementById('p-code').value.trim(),errors:document.getElementById('p-errors').value.trim(),concept:document.getElementById('p-concept').value.trim(),classification};
-  if(state.editingId){const p=state.problems.find(x=>x.id===state.editingId);if(p){Object.assign(p,data);p.imported=false;}}
-  else state.problems.push({id:Date.now()+Math.random(),...data,classification:null,date:new Date().toISOString(),imported:false});
-  saveState();closeModal('modal-problem');renderPage(state.currentPage);
+  if(state.editingId){
+    const p=state.problems.find(x=>sameId(x.id,state.editingId));
+    if(!p){alert('Could not find this problem — refresh the page and try again.');return;}
+    Object.assign(p,data);
+    p.id=String(p.id);
+    p.imported=false;
+  }else{
+    state.problems.push({id:String(Date.now()+Math.random()),...data,classification:null,date:new Date().toISOString(),imported:false});
+  }
+  const wasEdit=!!state.editingId;
+  const btn=document.getElementById('save-prob-btn');
+  if(btn){btn.disabled=true;btn.textContent='Saving…';}
+  try{
+    await saveStateNow();
+    state.editingId=null;
+    closeModal('modal-problem');
+    renderPage(state.currentPage);
+    if(typeof showToast==='function')showToast('Problem saved');
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent=wasEdit?'Save Changes':'Add Problem';}
+  }
 }
-function deleteProblem(id){
+async function deleteProblem(id){
   if(!confirm('Delete this problem permanently? This cannot be undone.'))return;
-  state.problems=(state.problems||[]).filter(p=>String(p.id)!==String(id));
-  state.revisionProblems=(state.revisionProblems||[]).filter(p=>String(p.id)!==String(id));
-  saveState();
+  state.problems=(state.problems||[]).filter(p=>!sameId(p.id,id));
+  state.revisionProblems=(state.revisionProblems||[]).filter(p=>!sameId(p.id,id));
+  await saveStateNow();
   closeModal('modal-view');
   closeModal('modal-problem');
   if(state.currentPage==='problems')renderProblems();
@@ -2603,8 +2647,8 @@ function openAddNote(){
 }
 
 function editNote(id){
-  const n=state.notes.find(x=>x.id===id);if(!n)return;
-  state.editingNoteId=id;
+  const n=state.notes.find(x=>sameId(x.id,id));if(!n)return;
+  state.editingNoteId=String(id);
   document.getElementById('modal-note-title').textContent='Edit Note';
   document.getElementById('save-note-btn').textContent='Save Changes';
   document.getElementById('note-delete-btn').classList.remove('hidden');
@@ -2615,27 +2659,32 @@ function editNote(id){
   openModal('modal-note');
 }
 
-function saveNote(){
+async function saveNote(){
   const title=document.getElementById('n-title').value.trim();
   const topic=document.getElementById('n-topic').value.trim();
   const content=document.getElementById('n-content').value;
   if(!title||!topic){alert('Please fill in title and topic.');return;}
   const now=new Date().toISOString();
   if(state.editingNoteId){
-    const n=state.notes.find(x=>x.id===state.editingNoteId);
-    if(n){n.title=title;n.topic=topic;n.content=content;n.updatedAt=now;}
+    const n=state.notes.find(x=>sameId(x.id,state.editingNoteId));
+    if(!n){alert('Could not find this note — refresh and try again.');return;}
+    n.title=title;n.topic=topic;n.content=content;n.updatedAt=now;
+    n.id=String(n.id);
   }else{
-    state.notes.push({id:Date.now()+Math.random(),title,topic,content,createdAt:now,updatedAt:now});
+    state.notes.push({id:String(Date.now()+Math.random()),title,topic,content,createdAt:now,updatedAt:now});
   }
-  saveState();closeModal('modal-note');renderNotes();
+  await saveStateNow();
+  state.editingNoteId=null;
+  closeModal('modal-note');renderNotes();
 }
 
-function deleteNote(){
+async function deleteNote(){
   if(!state.editingNoteId)return;
   if(!confirm('Delete this note?'))return;
-  state.notes=state.notes.filter(n=>n.id!==state.editingNoteId);
+  state.notes=state.notes.filter(n=>!sameId(n.id,state.editingNoteId));
   state.editingNoteId=null;
-  saveState();closeModal('modal-note');renderNotes();
+  await saveStateNow();
+  closeModal('modal-note');renderNotes();
 }
 
 // ======= MODALS =======
