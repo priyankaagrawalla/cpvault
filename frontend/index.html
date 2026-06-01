@@ -1239,45 +1239,64 @@ function calcStreak(actMap){
   return{streak,best};
 }
 
+function localDateStr(date){
+  const y=date.getFullYear();
+  const m=String(date.getMonth()+1).padStart(2,'0');
+  const d=String(date.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+
 function renderHeatmap(actMap){
   const container=document.getElementById('heatmap-container');
   if(!container)return;
   const weeks=26;// ~6 months
   const today=new Date();
-  // Find start of the heatmap (Monday of current week, 26 weeks back)
+  today.setHours(23,59,59,999);
+  // Monday of the week that contains today, then (weeks-1) full weeks back
   const dayOfWeek=today.getDay()||7;// mon=1..sun=7
-  const startDate=new Date(today.getTime()-(((weeks-1)*7)+(dayOfWeek-1))*86400000);
+  const startDate=new Date(today.getFullYear(),today.getMonth(),today.getDate()-(dayOfWeek-1)-((weeks-1)*7));
 
-  let monthLabels='<div style="display:flex;gap:0;margin-bottom:4px;margin-left:24px">';
-  let lastMonth=-1;
-  let html='<div style="display:flex;gap:0">';
-  // Day labels
-  html+='<div style="display:flex;flex-direction:column;gap:3px;margin-right:5px;padding-top:2px">';
+  const COL_W=15;// 12px cell + 3px gap — month labels must match week columns
+  let html='<div style="display:flex;gap:0;align-items:flex-start">';
+  // Day labels (width matches month row offset)
+  html+='<div style="display:flex;flex-direction:column;gap:3px;width:20px;flex-shrink:0;margin-right:5px;padding-top:2px">';
   ['M','','W','','F','','S'].forEach(d=>{
     html+=`<div style="font-size:9px;color:var(--text3);height:12px;font-family:'Space Mono',monospace;font-weight:700;display:flex;align-items:center">${d}</div>`;
   });
   html+='</div>';
 
-  let monthHtml='';
+  html+='<div style="display:flex;flex-direction:column;gap:0">';
+  let monthHtml='<div style="display:flex;gap:0;margin-bottom:4px;height:12px">';
+  let lastMonthKey=-1;
+  let gridHtml='<div style="display:flex;gap:0">';
+
   for(let w=0;w<weeks;w++){
-    html+=`<div style="display:flex;flex-direction:column;gap:3px;margin-right:3px">`;
     let monthThisCol='';
+    gridHtml+=`<div style="display:flex;flex-direction:column;gap:3px;width:12px;margin-right:3px;flex-shrink:0">`;
     for(let d=0;d<7;d++){
-      const date=new Date(startDate.getTime()+((w*7)+d)*86400000);
-      const dateStr=date.toISOString().substring(0,10);
-      const month=date.getMonth();
-      if(month!==lastMonth&&d===0){monthThisCol=date.toLocaleString('default',{month:'short'});lastMonth=month;}
-      if(date>today){html+=`<div style="width:12px;height:12px;border-radius:3px;opacity:0"></div>`;continue;}
+      const date=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate()+(w*7)+d);
+      const dateStr=localDateStr(date);
+      const monthKey=date.getFullYear()*12+date.getMonth();
+      // Label the week column where this month first appears (not only Mondays)
+      if(monthKey!==lastMonthKey){
+        monthThisCol=date.toLocaleString('default',{month:'short'});
+        lastMonthKey=monthKey;
+      }
+      if(date>today){
+        gridHtml+=`<div style="width:12px;height:12px;border-radius:3px;opacity:0;flex-shrink:0"></div>`;
+        continue;
+      }
       const count=actMap[dateStr]||0;
       const cls=count===0?'hm-0':count===1?'hm-1':count<=3?'hm-2':count<=5?'hm-3':'hm-4';
-      html+=`<div class="tooltip-wrap"><div class="heatmap-cell ${cls}" style="width:12px;height:12px" title="${dateStr}: ${count} problems"></div><div class="tooltip">${dateStr}: ${count}</div></div>`;
+      gridHtml+=`<div class="tooltip-wrap"><div class="heatmap-cell ${cls}" style="width:12px;height:12px" title="${dateStr}: ${count} problems"></div><div class="tooltip">${dateStr}: ${count}</div></div>`;
     }
-    html+=`</div>`;
-    if(monthThisCol){monthHtml+=`<div style="font-size:9px;color:var(--text3);font-family:'Space Mono',monospace;font-weight:700;min-width:${15}px">${monthThisCol}</div>`;}
-    else monthHtml+=`<div style="min-width:15px"></div>`;
+    gridHtml+='</div>';
+    monthHtml+=`<div class="hm-month" style="width:${COL_W}px;flex-shrink:0;overflow:visible;white-space:nowrap">${monthThisCol}</div>`;
   }
-  html+='</div>';
-  container.innerHTML=`<div style="font-size:9px;color:var(--text3);display:flex;gap:3px;margin-bottom:4px;margin-left:24px;overflow:hidden">${monthHtml}</div>`+html;
+  monthHtml+='</div>';
+  gridHtml+='</div>';
+  html+=monthHtml+gridHtml+'</div></div>';
+  container.innerHTML=html;
 }
 
 // ======= DASHBOARD =======
