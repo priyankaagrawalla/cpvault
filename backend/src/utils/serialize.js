@@ -1,4 +1,5 @@
 export function rowToProblem(row) {
+  const meta = row.meta && typeof row.meta === 'object' ? row.meta : {};
   return {
     id: row.client_id || row.id,
     dbId: row.id,
@@ -14,10 +15,12 @@ export function rowToProblem(row) {
     classification: row.classification,
     date: row.solved_date ? new Date(row.solved_date).toISOString() : new Date(row.created_at).toISOString(),
     imported: row.imported,
+    meta,
   };
 }
 
 export function rowToNote(row) {
+  const meta = row.meta && typeof row.meta === 'object' ? row.meta : {};
   return {
     id: row.client_id || row.id,
     dbId: row.id,
@@ -26,6 +29,7 @@ export function rowToNote(row) {
     content: row.content,
     createdAt: new Date(row.created_at).toISOString(),
     updatedAt: new Date(row.updated_at).toISOString(),
+    meta,
   };
 }
 

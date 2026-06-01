@@ -393,6 +393,7 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
       <button class="nav-item" onclick="nav('resolve')"><i class="ti ti-refresh"></i> Re-Solve <span class="nav-badge amber" id="resolve-badge">0</span></button>
       <button class="nav-item" onclick="nav('confident')"><i class="ti ti-target"></i> Confident <span class="nav-badge green" id="confident-badge">0</span></button>
       <button class="nav-item" onclick="nav('revision')"><i class="ti ti-clock-rotate"></i> Revision <span class="nav-badge green hidden" id="revision-badge">!</span></button>
+      <button class="nav-item" onclick="nav('upsolve')"><i class="ti ti-list-check"></i> Upsolve <span class="nav-badge amber" id="upsolve-badge">0</span></button>
       <div class="nav-section">Contests</div>
       <button class="nav-item" onclick="nav('contests')"><i class="ti ti-calendar-event"></i> Contests</button>
       <div class="nav-section hidden" id="admin-nav-section">Admin</div>
@@ -415,10 +416,22 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
         <input class="sync-input" id="at-handle" placeholder="AtCoder user">
         <button class="sync-btn" onclick="syncAT()">Sync</button>
       </div>
+      <div class="sync-row">
+        <div class="sync-dot" style="background:#22d3a0"></div>
+        <input class="sync-input" id="cc-handle" placeholder="CodeChef user">
+        <button class="sync-btn" onclick="syncCC()">Sync</button>
+      </div>
+      <div class="sync-row">
+        <div class="sync-dot" style="background:#f74f6a"></div>
+        <input class="sync-input" id="hr-handle" placeholder="HackerRank user">
+        <button class="sync-btn" onclick="syncHR()">Sync</button>
+      </div>
       <div class="sync-status" id="sync-status"></div>
+      <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-top:6px" data-open-settings><i class="ti ti-settings"></i> Settings & goals</button>
     </div>
     <div class="user-bar" id="user-bar">
       <strong id="user-display">—</strong>
+      <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:4px" onclick="openGlobalSearch?.()"><i class="ti ti-search"></i> Search (⌘K)</button>
       <button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:4px" onclick="openProfileModal()"><i class="ti ti-user"></i> Profile</button>
       <button class="btn btn-ghost btn-sm" style="width:100%" onclick="logoutUser()"><i class="ti ti-logout"></i> Logout</button>
     </div>
@@ -437,10 +450,12 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
       <div class="content">
         <div id="dash-empty-hint" class="hidden"></div>
         <div class="stats-row" id="dash-stats"></div>
+        <div id="dash-v2-extras"></div>
+        <div id="dash-dup-banner"></div>
         <!-- Row 1: Heatmap + Streaks -->
         <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px">
           <div class="card">
-            <div class="section-head">Activity Heatmap — Last 6 Months</div>
+            <div class="section-head">Activity Heatmap — Last 12 Months</div>
             <div id="heatmap-container"></div>
             <div style="display:flex;gap:7px;margin-top:10px;font-size:10px;color:var(--text3);align-items:center">
               Less
@@ -554,6 +569,17 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
       </div>
     </div>
 
+    <!-- UPSOLVE -->
+    <div id="page-upsolve" class="hidden">
+      <div class="page-header">
+        <div><div class="page-title">Upsolve Queue</div><div class="page-sub">Contest problems to solve after the round ends.</div></div>
+        <button class="btn btn-primary btn-sm" onclick="openAddUpsolve()"><i class="ti ti-plus"></i> Add</button>
+      </div>
+      <div class="content" id="upsolve-page-root">
+        <div id="upsolve-list"></div>
+      </div>
+    </div>
+
     <!-- REVISION (every 3 months) -->
     <div id="page-revision" class="hidden">
       <div class="page-header">
@@ -588,6 +614,7 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
         <div id="atab-ratings" class="hidden"></div>
         <div id="atab-weak" class="hidden"></div>
         <div id="atab-patterns" class="hidden"></div>
+        <div id="analysis-v2-extras"></div>
       </div>
     </div>
 
@@ -596,6 +623,7 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
       <div class="page-header">
         <div><div class="page-title">Contests</div><div class="page-sub">Schedule, log results, and analyze your contest performance.</div></div>
         <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+          <button type="button" class="btn btn-ghost btn-sm" data-export-ical><i class="ti ti-calendar-down"></i> Export .ics</button>
           <button class="btn btn-ghost btn-sm" onclick="requestNotifPermission()"><i class="ti ti-bell"></i> Notifications</button>
           <button class="btn btn-ghost btn-sm" onclick="openLogContestPerformance()"><i class="ti ti-chart-line"></i> Log Result</button>
           <button class="btn btn-primary" onclick="fetchAllContests()"><i class="ti ti-refresh"></i> Refresh</button>
@@ -604,6 +632,7 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
       <div class="content">
         <div class="tabs">
           <button class="tab active" id="contest-tab-upcoming" onclick="switchContestTab('upcoming')">Upcoming</button>
+          <button class="tab" id="contest-tab-calendar" onclick="switchContestTab('calendar')">Calendar</button>
           <button class="tab" id="contest-tab-performance" onclick="switchContestTab('performance')">Performance</button>
         </div>
         <div id="contest-panel-upcoming">
@@ -811,6 +840,10 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
 </div>
 
 <script type="module" src="/src/bootstrap.js"></script>
+<script type="module">
+import { initFeaturesV2 } from '/src/features-v2.js';
+window.initFeaturesV2 = initFeaturesV2;
+</script>
 <script>
 // ======= STATE =======
 let state={
@@ -819,7 +852,7 @@ let state={
   pendingImport:[],revisionProblems:[],revisionGeneratedAt:null,
   revisionHistory:[],contestHistory:[],contestPerformances:[],
   noteTopicFilter:'',contestsLastFetched:null,selectedExplorerTag:null,
-  contestTab:'upcoming'
+  contestTab:'upcoming',prefs:null,selectedProblemIds:null
 };
 
 const STANDARD_TAGS=['Binary Search','DP','Graphs','Trees','Greedy','Strings','Math','Geometry','Segment Tree','Two Pointers','Sliding Window','Bit Manipulation','Number Theory','Combinatorics','Sorting','Hashing','Stack','Queue','Heap','Union Find','Backtracking','Simulation'];
@@ -876,6 +909,7 @@ async function loadStateFromServer(){
     contestPerformances:data.contestPerformances||[],
     notes:(data.notes||[]).map(n=>({...n,id:n.id!=null?String(n.id):n.id})),
     contestsLastFetched:data.contestsLastFetched||null,
+    prefs:data.prefs||null,
     currentPage:state.currentPage||'dashboard',
     pendingImport:[],
     noteTopicFilter:state.noteTopicFilter||'',
@@ -886,7 +920,12 @@ async function loadStateFromServer(){
   document.getElementById('cf-handle').value=h.codeforces||'';
   document.getElementById('lc-handle').value=h.leetcode||'';
   document.getElementById('at-handle').value=h.atcoder||'';
+  document.getElementById('cc-handle').value=h.codechef||'';
+  document.getElementById('hr-handle').value=h.hackerrank||'';
   window._userProfile=data.profile||{};
+  if(typeof window.initFeaturesV2==='function'&&window.buildFeaturesContext){
+    window.initFeaturesV2(window.buildFeaturesContext());
+  }
 }
 window.loadStateFromServer=loadStateFromServer;
 
@@ -927,8 +966,11 @@ async function flushSaveState(){
       handles:{
         codeforces:document.getElementById('cf-handle').value.trim(),
         leetcode:document.getElementById('lc-handle').value.trim(),
-        atcoder:document.getElementById('at-handle').value.trim()
+        atcoder:document.getElementById('at-handle').value.trim(),
+        codechef:document.getElementById('cc-handle').value.trim(),
+        hackerrank:document.getElementById('hr-handle').value.trim()
       },
+      prefs:state.prefs||{},
       profile:window._userProfile||{}
     };
     await api.saveData(payload);
@@ -950,7 +992,9 @@ async function persistHandles(){
     await api.updateHandles({
       codeforces:document.getElementById('cf-handle').value.trim(),
       leetcode:document.getElementById('lc-handle').value.trim(),
-      atcoder:document.getElementById('at-handle').value.trim()
+      atcoder:document.getElementById('at-handle').value.trim(),
+      codechef:document.getElementById('cc-handle').value.trim(),
+      hackerrank:document.getElementById('hr-handle').value.trim()
     });
   }catch(e){console.error(e);}
 }
@@ -975,7 +1019,7 @@ async function syncCF(){
       if(sub.verdict!=='OK')continue;
       const p=sub.problem;const key=(p.contestId||'')+'-'+p.index;
       if(seen.has(key))continue;seen.add(key);
-      problems.push({name:p.name,platform:'Codeforces',rating:p.rating?String(p.rating):'',tags:normalizeTags(p.tags||[]),attempts:wrongMap[key]||0,url:p.contestId?`https://codeforces.com/problemset/problem/${p.contestId}/${p.index}`:'',date:new Date(sub.creationTimeSeconds*1000).toISOString()});
+      problems.push({name:p.name,platform:'Codeforces',rating:p.rating?String(p.rating):'',tags:normalizeTags(p.tags||[]),attempts:wrongMap[key]||0,url:p.contestId?`https://codeforces.com/problemset/problem/${p.contestId}/${p.index}`:'',date:localDateTimeIso(new Date(sub.creationTimeSeconds*1000))});
     }
     showImportPreview(problems,`Codeforces — ${handle}`);
     setSyncStatus(`Found ${problems.length} AC problems`,'ok');
@@ -1000,7 +1044,7 @@ async function syncLC(){
       let tags=[];
       try{const tr=await fetch(`https://alfa-leetcode-api.onrender.com/select?titleSlug=${encodeURIComponent(slug)}`);if(tr.ok){const td=await tr.json();tags=normalizeTags((td.topicTags||[]).map(t=>t.name||t.slug||''));}}catch(e){}
       if(!tags.length)try{const tr2=await fetch(`https://alfa-leetcode-api.onrender.com/${encodeURIComponent(slug)}`);if(tr2.ok){const td2=await tr2.json();tags=normalizeTags((td2.topicTags||[]).map(t=>t.name||''));}}catch(e){}
-      problems.push({name:title,platform:'LeetCode',rating:s.difficulty||'',tags:tags.length?tags:[UNCATEGORIZED_TAG],attempts:0,url:`https://leetcode.com/problems/${slug}/`,date:s.timestamp?new Date(parseInt(s.timestamp)*1000).toISOString():new Date().toISOString()});
+      problems.push({name:title,platform:'LeetCode',rating:s.difficulty||'',tags:tags.length?tags:[UNCATEGORIZED_TAG],attempts:0,url:`https://leetcode.com/problems/${slug}/`,date:localDateTimeIso(s.timestamp?new Date(parseInt(s.timestamp)*1000):new Date())});
     }
     showImportPreview(problems,`LeetCode — ${username}`);
     setSyncStatus(`Found ${problems.length} AC problems`,'ok');
@@ -1026,7 +1070,7 @@ async function syncAT(){
       const meta=probMeta[s.problem_id]||{};
       let tags=normalizeTags(meta.tags||[]);
       if(!tags.length&&meta.title){const tl=meta.title.toLowerCase();if(tl.includes('tree'))tags=['Trees'];else if(tl.includes('graph'))tags=['Graphs'];}
-      problems.push({name:meta.title||s.problem_id,platform:'AtCoder',rating:meta.point?String(meta.point):'',tags:tags.length?tags:[UNCATEGORIZED_TAG],attempts:0,url:`https://atcoder.jp/contests/${s.contest_id}/tasks/${s.problem_id}`,date:new Date(s.epoch_second*1000).toISOString()});
+      problems.push({name:meta.title||s.problem_id,platform:'AtCoder',rating:meta.point?String(meta.point):'',tags:tags.length?tags:[UNCATEGORIZED_TAG],attempts:0,url:`https://atcoder.jp/contests/${s.contest_id}/tasks/${s.problem_id}`,date:localDateTimeIso(new Date(s.epoch_second*1000))});
     }
     showImportPreview(problems,`AtCoder — ${user}`);
     setSyncStatus(`Found ${problems.length} AC problems`,'ok');
@@ -1093,13 +1137,14 @@ function nav(page){
   state.currentPage=page;
   if(page!=='tags')state.selectedExplorerTag=null;
   if(page==='dashboard')renderDashboard();
-  else if(page==='contests'){if(!state.contestsLastFetched)fetchAllContests();if(state.contestTab==='performance')renderContestPerformance();}
+  else if(page==='contests'){if(!state.contestsLastFetched)fetchAllContests();if(state.contestTab==='performance')renderContestPerformance();else if(state.contestTab==='calendar')window.renderContestCalendarPanel?.();}
+  else if(page==='upsolve'){window.renderUpsolvePage?.();}
   else if(page==='tags'&&state.selectedExplorerTag)renderTagDetail(state.selectedExplorerTag);
   else renderPage(page);
 }
 
 function renderPage(page){
-  ({dashboard:renderDashboard,problems:renderProblems,tags:renderTagExplorer,resolve:renderResolve,confident:renderConfident,revision:renderRevision,analysis:renderAnalysis,contests:renderContests,notes:renderNotes,admin:renderAdmin})[page]?.();
+  ({dashboard:renderDashboard,problems:renderProblems,tags:renderTagExplorer,resolve:renderResolve,confident:renderConfident,revision:renderRevision,analysis:renderAnalysis,contests:renderContests,notes:renderNotes,admin:renderAdmin,upsolve:()=>window.renderUpsolvePage?.()})[page]?.();
 }
 
 function switchTab(el,tabId){
@@ -1115,6 +1160,9 @@ function updateBadges(){
   const rb=document.getElementById('resolve-badge');if(rb){rb.textContent=resolveCount;rb.style.display=resolveCount?'':'none';}
   const cb=document.getElementById('confident-badge');if(cb){cb.textContent=confidentCount;cb.style.display=confidentCount?'':'none';}
   checkRevisionDue();
+  const ub=document.getElementById('upsolve-badge');
+  const uCount=(state.upsolveProblems||[]).filter(p=>p.status==='unsolved').length;
+  if(ub){ub.textContent=uCount;ub.style.display=uCount?'':'none';}
 }
 
 function showToast(msg){
@@ -1144,6 +1192,8 @@ function normalizeTag(raw){
   if(!trimmed)return null;
   const key=trimmed.toLowerCase();
   if(TAG_ALIASES[key])return TAG_ALIASES[key];
+  const userAlias=state.prefs?.tagAliases?.[key];
+  if(userAlias)return userAlias;
   if(STANDARD_TAGS.find(t=>t.toLowerCase()===key))return STANDARD_TAGS.find(t=>t.toLowerCase()===key);
   return trimmed.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ');
 }
@@ -1155,7 +1205,8 @@ function normalizeTags(arr){
 function parseTagsInput(str){return normalizeTags(str.split(','));}
 function getAllTags(){
   const fromProblems=[...new Set(state.problems.flatMap(p=>p.tags||[]))];
-  return [...new Set([...STANDARD_TAGS,...fromProblems])].filter(t=>t!==UNCATEGORIZED_TAG).sort();
+  const custom=state.prefs?.customTags||[];
+  return [...new Set([...STANDARD_TAGS,...custom,...fromProblems])].filter(t=>t!==UNCATEGORIZED_TAG).sort();
 }
 function getProblemsByTag(tag){
   return state.problems.filter(p=>(p.tags||[]).includes(tag));
@@ -1241,30 +1292,7 @@ function getTopicStats(){
   return s;
 }
 
-// ======= STREAK / HEATMAP =======
-function getActivityMap(){
-  const m={};
-  state.problems.forEach(p=>{const d=(p.date||'').substring(0,10);if(d)m[d]=(m[d]||0)+1;});
-  // also count revision/resolve completions by date
-  (state.revisionHistory||[]).forEach(h=>{const d=(h.date||'').substring(0,10);if(d)m[d]=(m[d]||0)+1;});
-  return m;
-}
-
-function calcStreak(actMap){
-  const today=new Date();let streak=0;let best=0;let cur=0;
-  // check last 365 days for best
-  for(let i=0;i<365;i++){
-    const d=new Date(today.getTime()-i*86400000).toISOString().substring(0,10);
-    if(actMap[d]){cur++;if(cur>best)best=cur;}else cur=0;
-  }
-  // current streak
-  for(let i=0;i<365;i++){
-    const d=new Date(today.getTime()-i*86400000).toISOString().substring(0,10);
-    if(actMap[d])streak++;else break;
-  }
-  return{streak,best};
-}
-
+// ======= STREAK / HEATMAP (local calendar day = 12:00 AM – 11:59 PM) =======
 function localDateStr(date){
   const y=date.getFullYear();
   const m=String(date.getMonth()+1).padStart(2,'0');
@@ -1272,15 +1300,81 @@ function localDateStr(date){
   return `${y}-${m}-${d}`;
 }
 
+/** Store solve time in local timezone (not UTC) so activity buckets match the calendar day. */
+function localDateTimeIso(date=new Date()){
+  const pad=n=>String(n).padStart(2,'0');
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
+/** Map any stored date/ISO to the user's local calendar day (YYYY-MM-DD). */
+function localDateKeyFromValue(value){
+  if(value==null||value==='')return '';
+  const s=String(value).trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+  const d=new Date(s);
+  if(Number.isNaN(d.getTime())){
+    const m=s.match(/^(\d{4}-\d{2}-\d{2})/);
+    return m?m[1]:'';
+  }
+  return localDateStr(d);
+}
+
+function localDateFromParts(y,m,d){
+  return new Date(y,m,d);
+}
+
+function addLocalDays(anchor,delta){
+  return localDateFromParts(anchor.getFullYear(),anchor.getMonth(),anchor.getDate()+delta);
+}
+
+function getActivityMap(){
+  const m={};
+  state.problems.forEach(p=>{
+    const d=localDateKeyFromValue(p.date);
+    if(d)m[d]=(m[d]||0)+1;
+  });
+  (state.revisionHistory||[]).forEach(h=>{
+    const d=localDateKeyFromValue(h.date);
+    if(d)m[d]=(m[d]||0)+1;
+  });
+  return m;
+}
+
+function calcStreak(actMap){
+  const todayLocal=localDateFromParts(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    new Date().getDate()
+  );
+  let streak=0;let best=0;let cur=0;
+  for(let i=0;i<365;i++){
+    const key=localDateStr(addLocalDays(todayLocal,-i));
+    if(actMap[key]){cur++;if(cur>best)best=cur;}else cur=0;
+  }
+  for(let i=0;i<365;i++){
+    const key=localDateStr(addLocalDays(todayLocal,-i));
+    if(actMap[key])streak++;else break;
+  }
+  return{streak,best};
+}
+
 function renderHeatmap(actMap){
   const container=document.getElementById('heatmap-container');
   if(!container)return;
   const weeks=26;// ~6 months
-  const today=new Date();
-  today.setHours(23,59,59,999);
-  // Monday of the week that contains today, then (weeks-1) full weeks back
-  const dayOfWeek=today.getDay()||7;// mon=1..sun=7
-  const startDate=new Date(today.getFullYear(),today.getMonth(),today.getDate()-(dayOfWeek-1)-((weeks-1)*7));
+  const todayLocal=localDateFromParts(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    new Date().getDate()
+  );
+  const endOfToday=new Date(
+    todayLocal.getFullYear(),
+    todayLocal.getMonth(),
+    todayLocal.getDate(),
+    23,59,59,999
+  );
+  const dayOfWeek=todayLocal.getDay()||7;// mon=1..sun=7
+  const startDate=addLocalDays(todayLocal,-(dayOfWeek-1)-((weeks-1)*7));
 
   const COL_W=15;// 12px cell + 3px gap — month labels must match week columns
   let html='<div style="display:flex;gap:0;align-items:flex-start">';
@@ -1300,7 +1394,7 @@ function renderHeatmap(actMap){
     let monthThisCol='';
     gridHtml+=`<div style="display:flex;flex-direction:column;gap:3px;width:12px;margin-right:3px;flex-shrink:0">`;
     for(let d=0;d<7;d++){
-      const date=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate()+(w*7)+d);
+      const date=addLocalDays(startDate,(w*7)+d);
       const dateStr=localDateStr(date);
       const monthKey=date.getFullYear()*12+date.getMonth();
       // Label the week column where this month first appears (not only Mondays)
@@ -1308,7 +1402,7 @@ function renderHeatmap(actMap){
         monthThisCol=date.toLocaleString('default',{month:'short'});
         lastMonthKey=monthKey;
       }
-      if(date>today){
+      if(date>endOfToday){
         gridHtml+=`<div style="width:12px;height:12px;border-radius:3px;opacity:0;flex-shrink:0"></div>`;
         continue;
       }
@@ -1363,9 +1457,13 @@ function renderDashboard(){
 
   // Week stats
   const weekProbs=[];
+  const todayLocal=localDateFromParts(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    new Date().getDate()
+  );
   for(let i=0;i<7;i++){
-    const d=new Date(Date.now()-i*86400000).toISOString().substring(0,10);
-    weekProbs.push(actMap[d]||0);
+    weekProbs.push(actMap[localDateStr(addLocalDays(todayLocal,-i))]||0);
   }
   const weekTotal=weekProbs.reduce((a,b)=>a+b,0);
   document.getElementById('week-stats').innerHTML=`
@@ -1595,7 +1693,7 @@ function markRevisionDone(id){
   if(r){
     r.revisionStatus='done';
     if(!state.revisionHistory)state.revisionHistory=[];
-    state.revisionHistory.push({date:new Date().toISOString(),type:'completed'});
+    state.revisionHistory.push({date:localDateTimeIso(),type:'completed'});
     saveState();
     renderRevision();
   }
@@ -1645,7 +1743,7 @@ async function saveProblem(){
     p.id=String(p.id);
     p.imported=false;
   }else{
-    state.problems.push({id:String(Date.now()+Math.random()),...data,classification:null,date:new Date().toISOString(),imported:false});
+    state.problems.push({id:String(Date.now()+Math.random()),...data,classification:null,date:localDateTimeIso(),imported:false});
   }
   const wasEdit=!!state.editingId;
   const btn=document.getElementById('save-prob-btn');

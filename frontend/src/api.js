@@ -54,4 +54,6 @@ export const api = {
   adminUsers: () => request('/admin/users'),
   adminUser: (id) => request(`/admin/users/${id}`),
   contestAnalytics: () => request('/contests/analytics'),
+  sendContestReminders: () =>
+    request('/notifications/contest-reminders', { method: 'POST' }),
 };

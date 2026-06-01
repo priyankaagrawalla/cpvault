@@ -14,6 +14,7 @@ import revisionRoutes from './routes/revision.js';
 import contestsRoutes from './routes/contests.js';
 import upsolveRoutes from './routes/upsolve.js';
 import adminRoutes from './routes/admin.js';
+import notificationsRoutes from './routes/notifications.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -33,6 +34,7 @@ app.use('/api/revision', revisionRoutes);
 app.use('/api/contests', contestsRoutes);
 app.use('/api/upsolve', upsolveRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
 if (config.serveFrontend) {
   const frontendDist = path.join(__dirname, '../../frontend/dist');

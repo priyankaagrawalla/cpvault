@@ -113,6 +113,9 @@ window.enterApp = async function (user) {
       populateTagSuggestions();
       updateBadges();
       startContestScheduler();
+      if (typeof window.initFeaturesV2 === 'function') {
+        window.initFeaturesV2(window.buildFeaturesContext?.() || {});
+      }
       renderDashboard();
     } catch (e) {
       console.error('Load failed:', e);

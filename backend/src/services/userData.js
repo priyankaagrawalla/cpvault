@@ -120,7 +120,10 @@ export async function loadFullState(userId) {
       codeforces: handles?.codeforces_handle || '',
       leetcode: handles?.leetcode_handle || '',
       atcoder: handles?.atcoder_handle || '',
+      codechef: handles?.codechef_handle || '',
+      hackerrank: handles?.hackerrank_handle || '',
     },
+    prefs: settings?.prefs && typeof settings.prefs === 'object' ? settings.prefs : {},
     problems: problemsRes.rows.map(rowToProblem),
     notes: notesRes.rows.map(rowToNote),
     contests: contestsRes.rows.map(rowToContest),
@@ -156,21 +159,36 @@ export async function saveFullState(userId, data) {
     if (data.handles) {
       await client.query(
         `UPDATE platform_handles SET
-          codeforces_handle = $2, leetcode_handle = $3, atcoder_handle = $4, updated_at = NOW()
+          codeforces_handle = $2, leetcode_handle = $3, atcoder_handle = $4,
+          codechef_handle = $5, hackerrank_handle = $6, updated_at = NOW()
          WHERE user_id = $1`,
         [
           userId,
           data.handles.codeforces || null,
           data.handles.leetcode || null,
           data.handles.atcoder || null,
+          data.handles.codechef || null,
+          data.handles.hackerrank || null,
         ]
       );
     }
 
-    if (data.contestsLastFetched !== undefined) {
+    if (data.contestsLastFetched !== undefined || data.prefs !== undefined) {
       await client.query(
-        `UPDATE user_settings SET contests_last_fetched = $2, updated_at = NOW() WHERE user_id = $1`,
-        [userId, data.contestsLastFetched ? new Date(data.contestsLastFetched) : null]
+        `UPDATE user_settings SET
+          contests_last_fetched = COALESCE($2, contests_last_fetched),
+          prefs = COALESCE($3, prefs),
+          updated_at = NOW()
+         WHERE user_id = $1`,
+        [
+          userId,
+          data.contestsLastFetched !== undefined
+            ? data.contestsLastFetched
+              ? new Date(data.contestsLastFetched)
+              : null
+            : null,
+          data.prefs !== undefined ? JSON.stringify(data.prefs || {}) : null,
+        ]
       );
     }
 
@@ -180,8 +198,8 @@ export async function saveFullState(userId, data) {
         await client.query(
           `INSERT INTO problems (
             user_id, client_id, name, platform, url, rating, tags, attempts,
-            code, errors, concept, classification, imported, solved_date
-          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+            code, errors, concept, classification, imported, solved_date, meta
+          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
           [
             userId,
             String(p.id),
@@ -197,6 +215,7 @@ export async function saveFullState(userId, data) {
             p.classification || null,
             !!p.imported,
             p.date ? new Date(p.date) : new Date(),
+            JSON.stringify(p.meta || {}),
           ]
         );
       }
@@ -206,8 +225,8 @@ export async function saveFullState(userId, data) {
       await client.query('DELETE FROM notes WHERE user_id = $1', [userId]);
       for (const n of data.notes) {
         await client.query(
-          `INSERT INTO notes (user_id, client_id, title, topic, content, created_at, updated_at)
-           VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+          `INSERT INTO notes (user_id, client_id, title, topic, content, created_at, updated_at, meta)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
           [
             userId,
             String(n.id),
@@ -216,6 +235,7 @@ export async function saveFullState(userId, data) {
             n.content || '',
             n.createdAt ? new Date(n.createdAt) : new Date(),
             n.updatedAt ? new Date(n.updatedAt) : new Date(),
+            JSON.stringify(n.meta || {}),
           ]
         );
       }
