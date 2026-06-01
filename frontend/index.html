@@ -24,7 +24,15 @@
   --glow-accent:0 0 20px rgba(91,141,238,0.15);
   --glow-green:0 0 20px rgba(29,201,160,0.15);
 }
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+html[data-theme="light"]{
+  --bg:#eef1f8;--bg2:#ffffff;--bg3:#f4f6fc;--bg4:#e8ecf6;--bg5:#dde3f0;
+  --border:#c8d0e4;--border2:#b8c2d8;--border3:#a8b4cc;
+  --text:#1a2236;--text2:#4a5878;--text3:#7a8aa8;
+  --shadow:0 4px 24px rgba(26,34,54,0.08);
+  --glow-accent:0 0 20px rgba(91,141,238,0.08);
+  --glow-green:0 0 20px rgba(29,201,160,0.08);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background 0.2s,color 0.2s}
 button{font-family:inherit;cursor:pointer;border:none;outline:none}
 input,select,textarea{font-family:inherit;outline:none;border:none;background:transparent;color:var(--text)}
 input::placeholder,textarea::placeholder{color:var(--text3)}
@@ -362,6 +370,19 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
       <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="auth-password" type="password" placeholder="••••••••"></div>
       <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="submitLogin()">Sign In</button>
       <div class="auth-switch">No account? <button type="button" onclick="showRegister()">Register</button></div>
+      <div class="auth-switch" style="margin-top:6px"><button type="button" onclick="showForgotPassword()">Forgot password?</button></div>
+    </div>
+    <div id="auth-form-forgot" class="hidden">
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="forgot-email" type="email" placeholder="you@example.com"></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="submitForgotPassword()">Send reset link</button>
+      <div class="auth-switch"><button type="button" onclick="showLogin()">Back to sign in</button></div>
+      <div id="forgot-dev-hint" class="hidden" style="margin-top:12px;font-size:11px;color:var(--amber);word-break:break-all"></div>
+    </div>
+    <div id="auth-form-reset" class="hidden">
+      <div class="form-group"><label class="form-label">New password</label><input class="form-input" id="reset-password" type="password" placeholder="min 8 characters"></div>
+      <div class="form-group"><label class="form-label">Confirm password</label><input class="form-input" id="reset-password2" type="password" placeholder="repeat password"></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="submitResetPassword()">Set new password</button>
+      <div class="auth-switch"><button type="button" onclick="showLogin()">Back to sign in</button></div>
     </div>
     <div id="auth-form-register" class="hidden">
       <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="reg-username" placeholder="coder123"></div>
@@ -431,6 +452,7 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
     </div>
     <div class="user-bar" id="user-bar">
       <strong id="user-display">—</strong>
+      <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:4px" onclick="toggleTheme()" id="theme-toggle-btn"><i class="ti ti-moon"></i> <span id="theme-toggle-label">Dark mode</span></button>
       <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:4px" onclick="openGlobalSearch?.()"><i class="ti ti-search"></i> Search (⌘K)</button>
       <button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:4px" onclick="openProfileModal()"><i class="ti ti-user"></i> Profile</button>
       <button class="btn btn-ghost btn-sm" style="width:100%" onclick="logoutUser()"><i class="ti ti-logout"></i> Logout</button>
@@ -511,6 +533,9 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
       <div class="page-header">
         <div><div class="page-title">All Problems</div><div class="page-sub">Every problem you've tackled, organized.</div></div>
         <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="runBulkClassify('resolve')">Bulk → Re-Solve</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="runBulkClassify('confident')">Bulk → Confident</button>
+          <button type="button" class="btn btn-danger btn-sm" onclick="runBulkDelete()">Bulk delete</button>
           <div class="search-wrap"><i class="ti ti-search"></i><input id="prob-search" placeholder="Search..." oninput="renderProblems()"></div>
           <select class="form-select" style="width:130px;padding:7px 10px;font-size:12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text)" id="prob-filter-plat" onchange="renderProblems()">
             <option value="">All platforms</option>
@@ -522,7 +547,7 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
       </div>
       <div class="content">
         <div class="table-wrap">
-          <table><thead><tr><th>Problem</th><th>Platform</th><th>Rating</th><th>Tags</th><th>Wrong</th><th>Classification</th><th>Actions</th></tr></thead><tbody id="prob-tbody"></tbody></table>
+          <table><thead><tr><th style="width:28px"></th><th>Problem</th><th>Platform</th><th>Rating</th><th>Tags</th><th>Wrong</th><th>Classification</th><th>Actions</th></tr></thead><tbody id="prob-tbody"></tbody></table>
         </div>
       </div>
     </div>
@@ -641,6 +666,9 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
           <div class="section-head">Upcoming Contests</div>
           <div id="contests-upcoming-list"></div>
         </div>
+        <div id="contest-panel-calendar" class="hidden">
+          <div id="contest-calendar-root"></div>
+        </div>
         <div id="contest-panel-performance" class="hidden">
           <div id="contest-performance-root"></div>
         </div>
@@ -685,10 +713,29 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
         <div class="tag-chip-picker" id="p-tag-chips"></div>
       </div>
       <div class="form-group"><label class="form-label">Wrong Attempts Before AC</label><input class="form-input" type="number" id="p-attempts" placeholder="0" min="0"></div>
+      <div class="form-group"><label class="form-label">Time taken <span style="font-weight:400;color:var(--text3)">(optional, minutes)</span></label><input class="form-input" type="number" id="p-time-taken" placeholder="e.g. 45" min="0" step="1"></div>
     </div>
     <div class="form-group"><label class="form-label">Your Accepted Code</label><textarea class="form-input" id="p-code" rows="3" placeholder="Paste your solution..." style="font-family:'Space Mono',monospace;font-size:12px"></textarea></div>
-    <div class="form-group"><label class="form-label">Error Notes — what went wrong?</label><textarea class="form-input" id="p-errors" placeholder="e.g. Off-by-one in binary search, forgot edge case..."></textarea></div>
-    <div class="form-group"><label class="form-label">Key Concept / Insight</label><textarea class="form-input" id="p-concept" placeholder="e.g. Use sliding window with two pointers..."></textarea></div>
+    <div class="form-group">
+      <label class="form-label">Error Notes — what went wrong? <span style="font-weight:400;color:var(--text3)">(Markdown)</span></label>
+      <div class="note-editor-tabs">
+        <button type="button" class="note-editor-tab active" id="p-errors-tab-edit" onclick="switchProblemMdTab('errors','edit')"><i class="ti ti-pencil"></i> Edit</button>
+        <button type="button" class="note-editor-tab" id="p-errors-tab-preview" onclick="switchProblemMdTab('errors','preview')"><i class="ti ti-eye"></i> Preview</button>
+      </div>
+      <textarea class="form-input" id="p-errors" rows="4" placeholder="e.g. Off-by-one in binary search..." oninput="if(!document.getElementById('p-errors-preview-pane').classList.contains('hidden'))updateProblemMdPreview('errors')"></textarea>
+      <div id="p-errors-preview-pane" class="hidden"><div class="note-md-preview" id="p-errors-preview"></div></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Key Concept / Insight <span style="font-weight:400;color:var(--text3)">(Markdown)</span></label>
+      <div class="note-editor-tabs">
+        <button type="button" class="note-editor-tab active" id="p-concept-tab-edit" onclick="switchProblemMdTab('concept','edit')"><i class="ti ti-pencil"></i> Edit</button>
+        <button type="button" class="note-editor-tab" id="p-concept-tab-preview" onclick="switchProblemMdTab('concept','preview')"><i class="ti ti-eye"></i> Preview</button>
+      </div>
+      <textarea class="form-input" id="p-concept" rows="4" placeholder="e.g. Use sliding window with two pointers..." oninput="if(!document.getElementById('p-concept-preview-pane').classList.contains('hidden'))updateProblemMdPreview('concept')"></textarea>
+      <div id="p-concept-preview-pane" class="hidden"><div class="note-md-preview" id="p-concept-preview"></div></div>
+    </div>
+    <div class="form-group" id="p-linked-notes-group"><label class="form-label">Linked note IDs (comma-separated)</label><input class="form-input" id="p-linked-notes" placeholder="optional"></div>
+    <div class="form-group hidden" id="p-versions-group"><label class="form-label">Version history</label><div id="p-versions-list" style="font-size:12px;color:var(--text2);max-height:120px;overflow:auto"></div></div>
     <div class="form-group" id="p-classification-group">
       <label class="form-label">Classification</label>
       <select class="classify-select" id="p-classification">
@@ -870,6 +917,11 @@ function sameId(a,b){
 function migrateProblems(){
   state.problems.forEach(p=>{
     if(p.id!=null)p.id=String(p.id);
+    if(!p.meta)p.meta={};
+    if(!Array.isArray(p.meta.versions))p.meta.versions=[];
+    if(!p.meta.revision)p.meta.revision={stage:0,nextDue:null,intervalDays:7};
+    if(!Array.isArray(p.meta.linkedNoteIds))p.meta.linkedNoteIds=[];
+    if(p.meta.timeTakenMinutes==null)p.meta.timeTakenMinutes=null;
     if(p.classification===undefined){
       if(p.shouldResolve===true)p.classification='resolve';
       else if(p.shouldResolve===false&&p.status==='active')p.classification='confident';
@@ -923,6 +975,7 @@ async function loadStateFromServer(){
   document.getElementById('cc-handle').value=h.codechef||'';
   document.getElementById('hr-handle').value=h.hackerrank||'';
   window._userProfile=data.profile||{};
+  initThemeFromStorage();
   if(typeof window.initFeaturesV2==='function'&&window.buildFeaturesContext){
     window.initFeaturesV2(window.buildFeaturesContext());
   }
@@ -1075,6 +1128,53 @@ async function syncAT(){
     showImportPreview(problems,`AtCoder — ${user}`);
     setSyncStatus(`Found ${problems.length} AC problems`,'ok');
   }catch(e){setSyncStatus('Error: '+(e.message||'Failed'),'err');}
+}
+
+async function syncCC(){
+  const user=document.getElementById('cc-handle').value.trim();
+  if(!user){setSyncStatus('Enter your CodeChef username','err');return;}
+  persistHandles();
+  setSyncStatus('<span class="spinner"></span> Fetching CodeChef...','');
+  try{
+    const res=await fetch(`https://www.codechef.com/users/${encodeURIComponent(user)}`);
+    const html=await res.text();
+    const problems=[];
+    const re=/href="(\/[^"]*\/problems\/[^"]+)"/gi;
+    let m;const seen=new Set();
+    while((m=re.exec(html))!==null){
+      const path=m[1];
+      const name=path.split('/').pop().replace(/-/g,' ');
+      if(seen.has(path))continue;
+      seen.add(path);
+      problems.push({name,platform:'CodeChef',rating:'',tags:[UNCATEGORIZED_TAG],attempts:0,url:'https://www.codechef.com'+path,date:localDateTimeIso()});
+    }
+    if(!problems.length)throw new Error('No problems found — profile may be private');
+    showImportPreview(problems,`CodeChef — ${user}`);
+    setSyncStatus(`Found ${problems.length} problems (profile scrape)`,'ok');
+  }catch(e){setSyncStatus('Error: '+(e.message||'Failed'),'err');}
+}
+
+async function syncHR(){
+  const user=document.getElementById('hr-handle').value.trim();
+  if(!user){setSyncStatus('Enter your HackerRank username','err');return;}
+  persistHandles();
+  setSyncStatus('<span class="spinner"></span> Fetching HackerRank...','');
+  try{
+    const res=await fetch(`https://www.hackerrank.com/rest/contests/master/hackers/${encodeURIComponent(user)}/recent_challenges?offset=0&limit=200`);
+    const data=await res.json();
+    const models=data.models||data||[];
+    const problems=[];
+    const seen=new Set();
+    (Array.isArray(models)?models:[]).forEach(ch=>{
+      const name=ch.challenge_name||ch.name||'';
+      if(!name||seen.has(name))return;
+      seen.add(name);
+      const slug=ch.slug||name.toLowerCase().replace(/\s+/g,'-');
+      problems.push({name,platform:'HackerRank',rating:ch.difficulty||'',tags:normalizeTags(ch.tags||[]).length?normalizeTags(ch.tags||[]):[UNCATEGORIZED_TAG],attempts:0,url:`https://www.hackerrank.com/challenges/${slug}`,date:localDateTimeIso()});
+    });
+    showImportPreview(problems,`HackerRank — ${user}`);
+    setSyncStatus(`Found ${problems.length} challenges`,'ok');
+  }catch(e){setSyncStatus('Error: '+(e.message||'HR API blocked — try later'),'err');}
 }
 
 function setSyncStatus(msg,type){const el=document.getElementById('sync-status');el.innerHTML=msg;el.className='sync-status'+(type?' '+type:'');}
@@ -1361,7 +1461,7 @@ function calcStreak(actMap){
 function renderHeatmap(actMap){
   const container=document.getElementById('heatmap-container');
   if(!container)return;
-  const weeks=26;// ~6 months
+  const weeks=window.HEATMAP_WEEKS||52;
   const todayLocal=localDateFromParts(
     new Date().getFullYear(),
     new Date().getMonth(),
@@ -1514,6 +1614,13 @@ function renderDashboard(){
     const diff=Math.max(0,new Date(c.date)-Date.now());const days=Math.floor(diff/86400000);const hrs=Math.floor((diff%86400000)/3600000);
     return`<div style="padding:8px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600">${esc(c.name)}</div><div style="display:flex;justify-content:space-between;margin-top:3px"><span style="font-size:11px;color:var(--text3)">${c.platform} · ${c.duration}min</span><span class="countdown">${days>0?days+'d '+hrs+'h':hrs+'h'}</span></div></div>`;
   }).join(''):'<div style="color:var(--text3);font-size:13px">No upcoming contests. <a href="#" onclick="nav(\'contests\');fetchAllContests();return false">Refresh</a></div>';
+  const v2=document.getElementById('dash-v2-extras');
+  if(v2&&typeof window.renderV2DashboardExtras==='function')v2.innerHTML=window.renderV2DashboardExtras(actMap);
+  const dupEl=document.getElementById('dash-dup-banner');
+  if(dupEl&&typeof window.findDuplicateGroups==='function'){
+    const dups=window.findDuplicateGroups();
+    dupEl.innerHTML=dups.length?`<div class="upsolve-banner" style="margin-bottom:14px"><i class="ti ti-copy"></i> ${dups.length} possible duplicate group(s). <button type="button" class="btn btn-ghost btn-sm" data-merge-dup="${escAttr(normalizeProblemKey(dups[0][0]))}">Merge first</button></div>`:'';
+  }
   }catch(err){
     console.error('Dashboard render error',err);
     showToast('Dashboard error: '+err.message);
@@ -1535,8 +1642,10 @@ function renderProblems(){
     return true;
   }).sort((a,b)=>new Date(b.date)-new Date(a.date));
   const tbody=document.getElementById('prob-tbody');
-  if(!filtered.length){tbody.innerHTML=`<tr><td colspan="7"><div class="empty"><i class="ti ti-search"></i><div class="empty-title">No problems found</div><div class="empty-sub">Sync your handle or add manually.</div></div></td></tr>`;return;}
+  if(!filtered.length){tbody.innerHTML=`<tr><td colspan="8"><div class="empty"><i class="ti ti-search"></i><div class="empty-title">No problems found</div><div class="empty-sub">Sync your handle or add manually.</div></div></td></tr>`;return;}
+  if(!state.selectedProblemIds)state.selectedProblemIds=new Set();
   tbody.innerHTML=filtered.map(p=>`<tr>
+    <td style="width:28px"><input type="checkbox" class="prob-bulk-cb" data-bulk-id="${escAttr(String(p.id))}" ${state.selectedProblemIds.has(String(p.id))?'checked':''}></td>
     <td style="max-width:200px"><div style="font-weight:600;color:var(--text);font-size:13px">${esc(p.name)}</div>${p.imported?'<span style="font-size:9px;color:var(--text3)">synced</span>':''}${p.url?`<a href="${p.url}" target="_blank" style="font-size:10px;color:var(--accent)"> open↗</a>`:''}</td>
     <td><span class="plat plat-${platCode(p.platform)}"></span>${p.platform}</td>
     <td><span class="tag ${ratingTag(p.rating)}">${p.rating||'—'}</span></td>
@@ -1565,13 +1674,16 @@ function viewProblem(id){
       <span class="tag ${classificationTag(p.classification)}">${classificationLabel(p.classification)}</span>
     </div>
     ${p.url?`<div style="margin-bottom:12px"><a href="${p.url}" target="_blank" style="color:var(--accent);font-size:13px"><i class="ti ti-external-link"></i> Open Problem</a></div>`:''}
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:9px;margin-bottom:14px">
       <div class="card card-sm card-red"><div style="font-size:9px;letter-spacing:1px;color:var(--text3);font-weight:700;margin-bottom:5px">WRONG ATTEMPTS</div><div style="font-size:24px;font-weight:700;font-family:'Space Mono',monospace;color:var(--red)">${p.attempts||0}</div></div>
       <div class="card card-sm card-accent"><div style="font-size:9px;letter-spacing:1px;color:var(--text3);font-weight:700;margin-bottom:5px">ADDED</div><div style="font-size:12px;font-weight:700;font-family:'Space Mono',monospace;color:var(--accent)">${new Date(p.date).toLocaleDateString()}</div></div>
+      ${p.meta?.timeTakenMinutes!=null&&p.meta.timeTakenMinutes>0?`<div class="card card-sm" style="border-color:rgba(167,139,250,0.25)"><div style="font-size:9px;letter-spacing:1px;color:var(--text3);font-weight:700;margin-bottom:5px">TIME TAKEN</div><div style="font-size:24px;font-weight:700;font-family:'Space Mono',monospace;color:var(--purple)">${p.meta.timeTakenMinutes}<span style="font-size:12px">m</span></div></div>`:''}
     </div>
-    ${p.errors?`<div class="form-group"><div class="form-label">Error Notes</div><div style="background:rgba(240,84,112,0.05);border-left:3px solid var(--red);border-radius:0 var(--radius) var(--radius) 0;padding:10px 14px;font-size:13px;color:var(--text2);line-height:1.6">${esc(p.errors)}</div></div>`:''}
-    ${p.concept?`<div class="form-group"><div class="form-label">Key Concept</div><div style="background:rgba(91,141,238,0.05);border-left:3px solid var(--accent);border-radius:0 var(--radius) var(--radius) 0;padding:10px 14px;font-size:13px;color:var(--text);line-height:1.6">${esc(p.concept)}</div></div>`:''}
+    ${p.errors?`<div class="form-group"><div class="form-label">Error Notes</div><div class="note-md-preview" style="border-left:3px solid var(--red)">${renderMarkdown(p.errors)}</div></div>`:''}
+    ${p.concept?`<div class="form-group"><div class="form-label">Key Concept</div><div class="note-md-preview" style="border-left:3px solid var(--accent)">${renderMarkdown(p.concept)}</div></div>`:''}
     ${p.code?`<div class="form-group"><div class="form-label">Solution</div><div class="code-block">${esc(p.code)}</div></div>`:''}
+    ${(p.meta?.versions||[]).length?`<div class="form-group"><div class="form-label">Older versions (${p.meta.versions.length})</div><div style="font-size:12px;color:var(--text3)">Edit problem to see full version list in modal.</div></div>`:''}
+    ${(p.meta?.linkedNoteIds||[]).length?`<div class="form-group"><div class="form-label">Linked notes</div><div style="font-size:12px">${(p.meta.linkedNoteIds||[]).map(id=>{const n=state.notes.find(x=>sameId(x.id,id));return n?`<a href="#" onclick="editNote('${id}');return false">${esc(n.title)}</a>`:esc(id);}).join(', ')}</div></div>`:''}
     <div style="display:flex;gap:8px;justify-content:space-between;margin-top:10px;flex-wrap:wrap">
       <button type="button" class="btn btn-danger btn-sm" data-delete-problem="${escAttr(String(p.id))}"><i class="ti ti-trash"></i> Delete</button>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -1605,8 +1717,8 @@ function renderClassificationCard(p,isResolve){
           <span class="tag ${ratingTag(p.rating)}" style="font-size:10px">${p.rating||'—'}</span>
         </div>
         <div style="font-size:12px;color:var(--text3);margin-bottom:7px"><span class="plat plat-${platCode(p.platform)}"></span>${p.platform} · ${(p.tags||[]).slice(0,3).join(', ')||'no topics'}</div>
-        ${isResolve&&p.errors?`<div style="background:rgba(240,84,112,0.05);border-left:3px solid var(--red);padding:7px 11px;border-radius:0 var(--radius) var(--radius) 0;font-size:12px;color:var(--text2);margin-bottom:6px;line-height:1.5"><div style="font-size:9px;letter-spacing:1px;color:var(--text3);font-weight:700;margin-bottom:3px">PAST ERRORS</div>${esc(p.errors)}</div>`:''}
-        ${p.concept?`<div style="background:rgba(91,141,238,0.05);border-left:3px solid ${isResolve?'var(--accent)':'var(--teal)'};padding:7px 11px;border-radius:0 var(--radius) var(--radius) 0;font-size:12px;color:var(--text2);line-height:1.5"><div style="font-size:9px;letter-spacing:1px;color:var(--text3);font-weight:700;margin-bottom:3px">KEY CONCEPT</div>${esc(p.concept)}</div>`:''}
+        ${isResolve&&p.errors?`<div style="margin-bottom:6px"><div style="font-size:9px;letter-spacing:1px;color:var(--text3);font-weight:700;margin-bottom:3px">PAST ERRORS</div><div class="note-md-preview" style="border-left:3px solid var(--red)">${renderMarkdown(p.errors)}</div></div>`:''}
+        ${p.concept?`<div><div style="font-size:9px;letter-spacing:1px;color:var(--text3);font-weight:700;margin-bottom:3px">KEY CONCEPT</div><div class="note-md-preview" style="border-left:3px solid ${isResolve?'var(--accent)':'var(--teal)'}">${renderMarkdown(p.concept)}</div></div>`:''}
       </div>
       <div style="display:flex;flex-direction:column;gap:5px;min-width:150px">
         ${p.url?`<a href="${p.url}" target="_blank" class="btn btn-ghost btn-sm"><i class="ti ti-external-link"></i> Open</a>`:''}
@@ -1624,16 +1736,18 @@ function setClassification(id,value){
 
 // ======= REVISION =======
 function generateRevision(){
-  const confident=state.problems.filter(p=>p.classification==='confident');
-  if(!confident.length){return;}
-  const ts=getTopicStats();
-  const weakTopics=Object.entries(ts).filter(([,s])=>s.acc>1&&s.total>=2).map(([t])=>t);
-  let pool=[];
-  if(weakTopics.length>0){
-    confident.forEach(p=>{if((p.tags||[]).some(t=>weakTopics.includes(t)))pool.push(p);});
+  const due=typeof window.getRevisionDueProblems==='function'?window.getRevisionDueProblems():[];
+  let pool=due.length?due:state.problems.filter(p=>p.classification==='confident');
+  if(!pool.length){showToast('No confident problems for revision');return;}
+  if(!due.length){
+    const ts=getTopicStats();
+    const weakTopics=Object.entries(ts).filter(([,s])=>s.acc>1&&s.total>=2).map(([t])=>t);
+    if(weakTopics.length>0){
+      const weakPool=[];
+      pool.forEach(p=>{if((p.tags||[]).some(t=>weakTopics.includes(t)))weakPool.push(p);});
+      if(weakPool.length)pool=weakPool;
+    }
   }
-  if(pool.length<5)pool=[...confident];
-  // Shuffle and pick 5-8
   pool.sort(()=>Math.random()-0.5);
   const count=Math.min(Math.max(5,Math.ceil(pool.length*0.15)),10);
   state.revisionProblems=pool.slice(0,count).map(p=>({...p,revisionStatus:'pending'}));
@@ -1676,11 +1790,12 @@ function renderRevision(){
             <span class="tag tag-purple" style="font-size:10px">revision</span>
           </div>
           <div style="font-size:12px;color:var(--text3);margin-bottom:6px"><span class="plat plat-${platCode(r.platform)}"></span>${r.platform} · ${(r.tags||[]).slice(0,3).join(', ')||'no topics'}</div>
-          ${r.concept?`<div style="background:rgba(167,139,250,0.05);border-left:3px solid var(--purple);padding:7px 11px;border-radius:0 var(--radius) var(--radius) 0;font-size:12px;color:var(--text2);line-height:1.5"><div style="font-size:9px;letter-spacing:1px;color:var(--text3);font-weight:700;margin-bottom:3px">KEY CONCEPT</div>${esc(r.concept)}</div>`:''}
+          ${r.concept?`<div style="margin-bottom:6px"><div style="font-size:9px;letter-spacing:1px;color:var(--text3);font-weight:700;margin-bottom:3px">KEY CONCEPT</div><div class="note-md-preview" style="border-left:3px solid var(--purple)">${renderMarkdown(r.concept)}</div></div>`:''}
         </div>
         <div style="display:flex;flex-direction:column;gap:5px;min-width:130px">
           ${r.url?`<a href="${r.url}" target="_blank" class="btn btn-ghost btn-sm"><i class="ti ti-external-link"></i> Open</a>`:''}
-          <button class="btn btn-primary btn-sm" style="background:var(--purple);border-color:var(--purple)" onclick="markRevisionDone('${r.id}')"><i class="ti ti-check"></i> Done!</button>
+          <button class="btn btn-primary btn-sm" style="background:var(--purple);border-color:var(--purple)" onclick="markRevisionDone('${r.id}',true)"><i class="ti ti-check"></i> Nailed it</button>
+          <button class="btn btn-amber btn-sm" onclick="markRevisionDone('${r.id}',false)"><i class="ti ti-refresh"></i> Struggled</button>
         </div>
       </div>
     </div>`).join('')}
@@ -1688,15 +1803,20 @@ function renderRevision(){
     ${completed.map(r=>`<div class="card card-sm" style="opacity:0.6;margin-bottom:7px"><div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;font-weight:600">${esc(r.name)}</span><span class="tag tag-green">✓ revised</span></div></div>`).join('')}`:''}`;
 }
 
-function markRevisionDone(id){
+function markRevisionDone(id,success){
   const r=state.revisionProblems.find(x=>String(x.id)===String(id));
-  if(r){
+  if(!r)return;
+  const prob=state.problems.find(x=>sameId(x.id,r.id));
+  if(success===false){
+    if(prob&&typeof window.scheduleRevisionFail==='function')window.scheduleRevisionFail(prob);
     r.revisionStatus='done';
-    if(!state.revisionHistory)state.revisionHistory=[];
-    state.revisionHistory.push({date:localDateTimeIso(),type:'completed'});
-    saveState();
-    renderRevision();
+  }else{
+    if(prob&&typeof window.scheduleRevisionSuccess==='function')window.scheduleRevisionSuccess(prob);
+    r.revisionStatus='done';
   }
+  if(!state.revisionHistory)state.revisionHistory=[];
+  state.revisionHistory.push({date:localDateTimeIso(),type:success===false?'failed':'completed',problemId:r.id});
+  saveStateNow?.().then(()=>renderRevision());
 }
 
 // ======= ADD/EDIT/DELETE =======
@@ -1706,7 +1826,9 @@ function openAddProblem(){
   document.getElementById('save-prob-btn').textContent='Add Problem';
   ['p-name','p-url','p-rating','p-tags','p-code','p-errors','p-concept'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('p-platform').value='';document.getElementById('p-attempts').value='0';
+  const pt=document.getElementById('p-time-taken');if(pt)pt.value='';
   document.getElementById('p-classification-group').classList.add('hidden');
+  resetProblemMdTabs();
   populateTagSuggestions();renderTagChipPicker([]);
   openModal('modal-problem');
 }
@@ -1720,7 +1842,18 @@ function editProblem(id){
   document.getElementById('p-platform').value=p.platform||'';document.getElementById('p-rating').value=p.rating||'';
   document.getElementById('p-tags').value=(p.tags||[]).join(', ');document.getElementById('p-attempts').value=p.attempts||0;
   document.getElementById('p-code').value=p.code||'';document.getElementById('p-errors').value=p.errors||'';document.getElementById('p-concept').value=p.concept||'';
+  const pt=document.getElementById('p-time-taken');if(pt)pt.value=p.meta?.timeTakenMinutes??'';
   document.getElementById('p-classification').value=p.classification||'';
+  resetProblemMdTabs();
+  const ln=document.getElementById('p-linked-notes');
+  if(ln)ln.value=(p.meta?.linkedNoteIds||[]).join(', ');
+  const vg=document.getElementById('p-versions-group');
+  const vl=document.getElementById('p-versions-list');
+  if(vg&&vl){
+    const vers=p.meta?.versions||[];
+    if(vers.length){vg.classList.remove('hidden');vl.innerHTML=vers.slice(0,5).map((v,i)=>`<div style="margin-bottom:6px;padding:6px;background:var(--bg3);border-radius:6px"><b>v${vers.length-i}</b> ${(v.savedAt||'').slice(0,10)}</div>`).join('');}
+    else vg.classList.add('hidden');
+  }
   populateTagSuggestions();renderTagChipPicker(p.tags||[]);
   openModal('modal-problem');
 }
@@ -1735,15 +1868,22 @@ async function saveProblem(){
   if(!tags.length){alert('Please add at least one tag (e.g. DP, Graphs, Binary Search).');return;}
   const finalTags=tags.includes(UNCATEGORIZED_TAG)&&tags.length>1?tags.filter(t=>t!==UNCATEGORIZED_TAG):tags;
   const classification=getClassificationValue();
+  const timeRaw=document.getElementById('p-time-taken')?.value.trim();
+  const timeTakenMinutes=timeRaw===''?null:Math.max(0,parseInt(timeRaw,10)||0);
   const data={name,platform,url:document.getElementById('p-url').value.trim(),rating:document.getElementById('p-rating').value.trim(),tags:finalTags,attempts:parseInt(document.getElementById('p-attempts').value)||0,code:document.getElementById('p-code').value.trim(),errors:document.getElementById('p-errors').value.trim(),concept:document.getElementById('p-concept').value.trim(),classification};
   if(state.editingId){
     const p=state.problems.find(x=>sameId(x.id,state.editingId));
     if(!p){alert('Could not find this problem — refresh the page and try again.');return;}
+    if(typeof window.pushProblemVersion==='function')window.pushProblemVersion(p);
     Object.assign(p,data);
     p.id=String(p.id);
     p.imported=false;
+    const linkNotes=(document.getElementById('p-linked-notes')?.value||'').split(',').map(s=>s.trim()).filter(Boolean);
+    if(!p.meta)p.meta={};
+    p.meta.linkedNoteIds=linkNotes;
+    p.meta.timeTakenMinutes=timeTakenMinutes;
   }else{
-    state.problems.push({id:String(Date.now()+Math.random()),...data,classification:null,date:localDateTimeIso(),imported:false});
+    state.problems.push({id:String(Date.now()+Math.random()),...data,classification:null,date:localDateTimeIso(),imported:false,meta:{timeTakenMinutes,versions:[],revision:{stage:0,nextDue:null,intervalDays:7},linkedNoteIds:[],linkedContestIds:[]}});
   }
   const wasEdit=!!state.editingId;
   const btn=document.getElementById('save-prob-btn');
@@ -1970,10 +2110,13 @@ let editingPerfId=null;
 function switchContestTab(tab){
   state.contestTab=tab;
   document.getElementById('contest-tab-upcoming')?.classList.toggle('active',tab==='upcoming');
+  document.getElementById('contest-tab-calendar')?.classList.toggle('active',tab==='calendar');
   document.getElementById('contest-tab-performance')?.classList.toggle('active',tab==='performance');
   document.getElementById('contest-panel-upcoming')?.classList.toggle('hidden',tab!=='upcoming');
+  document.getElementById('contest-panel-calendar')?.classList.toggle('hidden',tab!=='calendar');
   document.getElementById('contest-panel-performance')?.classList.toggle('hidden',tab!=='performance');
   if(tab==='performance')renderContestPerformance();
+  else if(tab==='calendar')window.renderContestCalendarPanel?.();
   else renderContests();
 }
 
@@ -2152,7 +2295,13 @@ function renderPerfProblemRows(rows){
   const el=document.getElementById('perf-problems-list');
   if(!el)return;
   const list=rows||[];
-  el.innerHTML=list.map((p,i)=>`<div class="perf-problem-row" data-idx="${i}">
+  el.innerHTML=list.map((p,i)=>{
+    const linkOpts=state.problems.slice(0,200).map(pr=>{
+      const sel=sameId(pr.id,p.problemId)?' selected':'';
+      return `<option value="${escAttr(String(pr.id))}"${sel}>${esc(pr.name)}</option>`;
+    }).join('');
+    return `<div class="perf-problem-row" data-idx="${i}">
+    <select class="form-select form-input" style="max-width:140px" data-field="problemId" onchange="linkPerfRowToProblem(this)"><option value="">Link…</option>${linkOpts}</select>
     <input class="form-input" placeholder="Problem name" value="${esc(p.name||'')}" data-field="name">
     <input class="form-input" style="max-width:80px" placeholder="Rating" value="${esc(p.rating||'')}" data-field="rating">
     <select class="form-select form-input" style="max-width:130px" data-field="status">
@@ -2162,13 +2311,25 @@ function renderPerfProblemRows(rows){
       <option value="pending"${p.status==='pending'?' selected':''}>Pending</option>
     </select>
     <button type="button" class="btn btn-ghost btn-sm" onclick="removePerfProblemRow(${i})"><i class="ti ti-x"></i></button>
-  </div>`).join('');
+  </div>`;}).join('');
 }
 
+function linkPerfRowToProblem(sel){
+  const opt=sel.selectedOptions?.[0];
+  if(!opt?.value)return;
+  const pr=state.problems.find(x=>sameId(x.id,opt.value));
+  if(!pr)return;
+  const row=sel.closest('.perf-problem-row');
+  row.querySelector('[data-field=name]').value=pr.name;
+  row.querySelector('[data-field=rating]').value=pr.rating||'';
+  if(!pr.meta)pr.meta={};
+  if(!pr.meta.linkedContestIds)pr.meta.linkedContestIds=[];
+}
 function addPerfProblemRow(){const rows=collectPerfProblemRows();rows.push({name:'',rating:'',status:'missed'});renderPerfProblemRows(rows);}
 function removePerfProblemRow(i){const rows=collectPerfProblemRows();rows.splice(i,1);renderPerfProblemRows(rows);}
 function collectPerfProblemRows(){
   return [...document.querySelectorAll('#perf-problems-list .perf-problem-row')].map(row=>({
+    problemId:row.querySelector('[data-field=problemId]')?.value||'',
     name:row.querySelector('[data-field=name]')?.value.trim()||'',
     rating:row.querySelector('[data-field=rating]')?.value.trim()||'',
     status:row.querySelector('[data-field=status]')?.value||'missed'
@@ -2241,9 +2402,18 @@ function saveContestPerformance(){
   }else{
     state.contestPerformances.push({id:Date.now()+Math.random(),...data});
   }
+  problems.forEach(row=>{
+    if(!row.problemId)return;
+    const pr=state.problems.find(x=>sameId(x.id,row.problemId));
+    if(!pr)return;
+    if(!pr.meta)pr.meta={};
+    if(!pr.meta.linkedContestIds)pr.meta.linkedContestIds=[];
+    if(contestId&&!pr.meta.linkedContestIds.includes(String(contestId)))pr.meta.linkedContestIds.push(String(contestId));
+  });
   syncPerfFromUpsolve(contestId,contestName);
-  saveState();closeModal('modal-contest-perf');
+  saveStateNow?.().then(()=>{closeModal('modal-contest-perf');
   if(state.contestTab==='performance')renderContestPerformance();
+  });
 }
 
 function renderContests(){
@@ -2442,7 +2612,11 @@ function promoteUpsolve(id){
 }
 
 // ======= ANALYSIS =======
-function renderAnalysis(){renderTopicAnalysis();}
+function renderAnalysis(){
+  renderTopicAnalysis();
+  const el=document.getElementById('analysis-v2-extras');
+  if(el&&typeof window.renderV2AnalysisExtras==='function')el.innerHTML=window.renderV2AnalysisExtras();
+}
 
 function renderTopicAnalysis(){
   const ts=getTopicStats();
@@ -2658,6 +2832,59 @@ function renderPatternAnalysis(){
     </div>`;
 }
 
+// ======= THEME =======
+function applyTheme(theme,persistPrefs){
+  const t=theme==='light'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  localStorage.setItem('cpvault_theme',t);
+  if(state.prefs)state.prefs.theme=t;
+  const btn=document.getElementById('theme-toggle-btn');
+  const lbl=document.getElementById('theme-toggle-label');
+  const icon=btn?.querySelector('i');
+  if(icon)icon.className='ti '+(t==='light'?'ti-sun':'ti-moon');
+  if(lbl)lbl.textContent=t==='light'?'Light mode':'Dark mode';
+  if(persistPrefs&&window.getAuthToken?.())saveState();
+}
+function toggleTheme(){
+  const cur=document.documentElement.getAttribute('data-theme')||'dark';
+  applyTheme(cur==='light'?'dark':'light',true);
+}
+function initThemeFromStorage(){
+  const stored=localStorage.getItem('cpvault_theme');
+  const fromPrefs=state.prefs?.theme;
+  applyTheme(fromPrefs||stored||'dark',false);
+}
+
+// ======= PROBLEM MARKDOWN FIELDS =======
+function switchProblemMdTab(field,tab){
+  const ta=document.getElementById('p-'+field);
+  const prevPane=document.getElementById('p-'+field+'-preview-pane');
+  const tabEdit=document.getElementById('p-'+field+'-tab-edit');
+  const tabPrev=document.getElementById('p-'+field+'-tab-preview');
+  if(!ta||!prevPane)return;
+  const isEdit=tab==='edit';
+  ta.classList.toggle('hidden',!isEdit);
+  prevPane.classList.toggle('hidden',isEdit);
+  tabEdit?.classList.toggle('active',isEdit);
+  tabPrev?.classList.toggle('active',!isEdit);
+  if(!isEdit)updateProblemMdPreview(field);
+}
+function updateProblemMdPreview(field){
+  const el=document.getElementById('p-'+field+'-preview');
+  const ta=document.getElementById('p-'+field);
+  if(el&&ta)el.innerHTML=renderMarkdown(ta.value);
+}
+function resetProblemMdTabs(){
+  ['errors','concept'].forEach(field=>{
+    const ta=document.getElementById('p-'+field);
+    const prevPane=document.getElementById('p-'+field+'-preview-pane');
+    if(ta)ta.classList.remove('hidden');
+    if(prevPane)prevPane.classList.add('hidden');
+    document.getElementById('p-'+field+'-tab-edit')?.classList.add('active');
+    document.getElementById('p-'+field+'-tab-preview')?.classList.remove('active');
+  });
+}
+
 // ======= NOTES =======
 function renderMarkdown(md){
   if(typeof marked!=='undefined')return marked.parse(md||'');
@@ -2865,6 +3092,53 @@ window.openTagDetail=openTagDetail;
 window.renderTagExplorer=renderTagExplorer;
 window.renderTagDetail=renderTagDetail;
 window.nav=nav;
+
+function normalizeProblemKey(p){
+  const url=(p.url||'').toLowerCase().replace(/\/$/,'');
+  if(url)return url;
+  return `${(p.platform||'').toLowerCase()}::${(p.name||'').toLowerCase().trim()}`;
+}
+
+function runBulkClassify(value){
+  if(!state.selectedProblemIds?.size){showToast('Select problems with checkboxes first');return;}
+  state.problems.forEach(p=>{
+    if(state.selectedProblemIds.has(String(p.id)))p.classification=value;
+  });
+  saveStateNow?.().then(()=>{showToast('Bulk update saved');renderProblems();updateBadges();});
+}
+
+function runBulkDelete(){
+  if(!state.selectedProblemIds?.size){showToast('Select problems first');return;}
+  if(!confirm(`Delete ${state.selectedProblemIds.size} problems?`))return;
+  state.problems=state.problems.filter(p=>!state.selectedProblemIds.has(String(p.id)));
+  state.selectedProblemIds.clear();
+  saveStateNow?.().then(()=>{showToast('Deleted');renderProblems();updateBadges();});
+}
+
+document.addEventListener('change',function(e){
+  if(e.target.classList.contains('prob-bulk-cb')){
+    if(!state.selectedProblemIds)state.selectedProblemIds=new Set();
+    const id=e.target.getAttribute('data-bulk-id');
+    if(e.target.checked)state.selectedProblemIds.add(id);
+    else state.selectedProblemIds.delete(id);
+  }
+});
+
+window.applyTheme=applyTheme;
+window.initThemeFromStorage=initThemeFromStorage;
+window.toggleTheme=toggleTheme;
+
+window.buildFeaturesContext=function(){
+  return{
+    state,esc,STANDARD_TAGS,UNCATEGORIZED_TAG,
+    getActivityMap,localDateKeyFromValue,localDateStr,addLocalDays,localDateFromParts,
+    saveState,saveStateNow,showToast,openModal,closeModal,nav,renderPage,
+    syncCF,syncLC,syncAT,syncCC,syncHR,fetchAllContests,getContestEnd,
+    buildContestAnalytics,showImportPreview,
+    fetchRatingHistory:async(s,h)=>{const{fetchRatingHistory}=await import('/src/features-v2.js');return fetchRatingHistory(s,h);}
+  };
+};
+window.openGlobalSearch=function(){document.getElementById('global-search-overlay')?.classList.remove('hidden');};
 
 // App init runs after login via bootstrap.js enterApp()
 </script>

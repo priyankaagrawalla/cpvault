@@ -35,3 +35,35 @@ export async function sendContestEmail(to, prefs = {}) {
   await transport.sendMail({ from, to, subject, text });
   return true;
 }
+
+export async function sendPasswordResetEmail(to, resetUrl) {
+  if (!to || !resetUrl) return false;
+  const host = process.env.SMTP_HOST;
+  const subject = 'CP Vault — Reset your password';
+  const text = `You requested a password reset for CP Vault.\n\nOpen this link (valid for 1 hour):\n${resetUrl}\n\nIf you did not request this, ignore this email.`;
+
+  if (!host) {
+    console.log('[email] Password reset link (SMTP not configured):', resetUrl);
+    return false;
+  }
+
+  let nodemailer;
+  try {
+    nodemailer = await import('nodemailer');
+  } catch {
+    return false;
+  }
+
+  const transport = nodemailer.createTransport({
+    host,
+    port: parseInt(process.env.SMTP_PORT || '587', 10),
+    secure: process.env.SMTP_SECURE === 'true',
+    auth: process.env.SMTP_USER
+      ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+      : undefined,
+  });
+
+  const from = process.env.SMTP_FROM || 'CP Vault <noreply@cpvault.app>';
+  await transport.sendMail({ from, to, subject, text });
+  return true;
+}

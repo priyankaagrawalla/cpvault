@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import { pool } from '../db/pool.js';
 import { signToken, requireAuth } from '../middleware/auth.js';
 import { ensureUserRows } from '../services/userData.js';
+import { requestPasswordReset, resetPasswordWithToken } from '../services/passwordReset.js';
 
 const router = Router();
 const SALT_ROUNDS = 12;
@@ -71,6 +72,34 @@ router.post('/login', async (req, res) => {
 
 router.post('/logout', requireAuth, (_req, res) => {
   res.json({ message: 'Logged out. Clear your token on the client.' });
+});
+
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email?.trim()) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+    const result = await requestPasswordReset(email);
+    res.json({
+      message: 'If an account exists for that email, a reset link has been sent.',
+      devToken: result.devToken || undefined,
+      resetUrl: result.resetUrl || undefined,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Could not process reset request' });
+  }
+});
+
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    await resetPasswordWithToken(token, password);
+    res.json({ message: 'Password updated. You can sign in now.' });
+  } catch (err) {
+    res.status(400).json({ error: err.message || 'Reset failed' });
+  }
 });
 
 router.get('/me', requireAuth, async (req, res) => {

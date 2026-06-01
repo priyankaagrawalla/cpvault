@@ -6,22 +6,46 @@ window.setAuthUser = setStoredUser;
 window.getAuthToken = getToken;
 window.getAuthUser = getStoredUser;
 
+let pendingResetToken = null;
+
 function showAuthError(msg) {
   const el = document.getElementById('auth-error');
   if (el) el.textContent = msg || '';
 }
 
+function hideAllAuthForms() {
+  ['auth-form-login', 'auth-form-register', 'auth-form-forgot', 'auth-form-reset'].forEach((id) => {
+    document.getElementById(id)?.classList.add('hidden');
+  });
+}
+
 window.showLogin = function () {
+  hideAllAuthForms();
   document.getElementById('auth-form-login')?.classList.remove('hidden');
-  document.getElementById('auth-form-register')?.classList.add('hidden');
   document.getElementById('auth-sub').textContent = 'Sign in to sync your progress';
   showAuthError('');
 };
 
 window.showRegister = function () {
-  document.getElementById('auth-form-login')?.classList.add('hidden');
+  hideAllAuthForms();
   document.getElementById('auth-form-register')?.classList.remove('hidden');
   document.getElementById('auth-sub').textContent = 'Create your CP Vault account';
+  showAuthError('');
+};
+
+window.showForgotPassword = function () {
+  hideAllAuthForms();
+  document.getElementById('auth-form-forgot')?.classList.remove('hidden');
+  document.getElementById('auth-sub').textContent = 'Reset your password';
+  document.getElementById('forgot-dev-hint')?.classList.add('hidden');
+  showAuthError('');
+};
+
+window.showResetPassword = function (token) {
+  pendingResetToken = token || pendingResetToken;
+  hideAllAuthForms();
+  document.getElementById('auth-form-reset')?.classList.remove('hidden');
+  document.getElementById('auth-sub').textContent = 'Choose a new password';
   showAuthError('');
 };
 
@@ -49,6 +73,57 @@ window.submitRegister = async function () {
     setToken(data.token);
     setStoredUser(data.user);
     await window.enterApp(data.user);
+  } catch (e) {
+    showAuthError(e.message);
+  }
+};
+
+window.submitForgotPassword = async function () {
+  showAuthError('');
+  const hint = document.getElementById('forgot-dev-hint');
+  if (hint) {
+    hint.classList.add('hidden');
+    hint.textContent = '';
+  }
+  try {
+    const email = document.getElementById('forgot-email').value.trim();
+    const data = await api.forgotPassword(email);
+    showAuthError(data.message || 'Check your email for a reset link.');
+    if (data.resetUrl && hint) {
+      hint.classList.remove('hidden');
+      hint.innerHTML = `Dev mode (no SMTP): <a href="${data.resetUrl}">Open reset link</a>`;
+    } else if (data.devToken && hint) {
+      hint.classList.remove('hidden');
+      hint.textContent = `Dev token: ${data.devToken}`;
+    }
+  } catch (e) {
+    showAuthError(e.message);
+  }
+};
+
+window.submitResetPassword = async function () {
+  showAuthError('');
+  const p1 = document.getElementById('reset-password').value;
+  const p2 = document.getElementById('reset-password2').value;
+  if (p1 !== p2) {
+    showAuthError('Passwords do not match');
+    return;
+  }
+  const token =
+    pendingResetToken || new URLSearchParams(window.location.search).get('reset');
+  if (!token) {
+    showAuthError('Missing reset token. Use the link from your email.');
+    return;
+  }
+  try {
+    await api.resetPassword(token, p1);
+    pendingResetToken = null;
+    const url = new URL(window.location.href);
+    url.searchParams.delete('reset');
+    window.history.replaceState({}, '', url.pathname + url.search);
+    showAuthError('');
+    alert('Password updated. Sign in with your new password.');
+    window.showLogin();
   } catch (e) {
     showAuthError(e.message);
   }
@@ -113,9 +188,6 @@ window.enterApp = async function (user) {
       populateTagSuggestions();
       updateBadges();
       startContestScheduler();
-      if (typeof window.initFeaturesV2 === 'function') {
-        window.initFeaturesV2(window.buildFeaturesContext?.() || {});
-      }
       renderDashboard();
     } catch (e) {
       console.error('Load failed:', e);
@@ -145,6 +217,17 @@ async function checkBackendStatus() {
 }
 
 async function tryAutoLogin() {
+  if (typeof window.initThemeFromStorage === 'function') {
+    window.initThemeFromStorage();
+  }
+
+  const resetToken = new URLSearchParams(window.location.search).get('reset');
+  if (resetToken) {
+    await checkBackendStatus();
+    window.showResetPassword(resetToken);
+    return;
+  }
+
   await checkBackendStatus();
   const token = getToken();
   if (!token) {

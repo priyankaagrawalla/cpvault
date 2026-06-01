@@ -14,6 +14,7 @@ export function defaultPrefs() {
     emailEnabled: false,
     emailAddress: '',
     ratingHistory: { codeforces: [], leetcode: [] },
+    theme: 'dark',
   };
 }
 
@@ -33,6 +34,7 @@ export function ensureProblemMeta(p) {
   if (!p.meta.revision) p.meta.revision = { stage: 0, nextDue: null, intervalDays: REVISION_INTERVALS[0] };
   if (!Array.isArray(p.meta.linkedNoteIds)) p.meta.linkedNoteIds = [];
   if (!Array.isArray(p.meta.linkedContestIds)) p.meta.linkedContestIds = [];
+  if (p.meta.timeTakenMinutes === undefined) p.meta.timeTakenMinutes = null;
 }
 
 export function ensureNoteMeta(n) {
@@ -479,14 +481,7 @@ export function initFeaturesV2(ctx) {
   };
 
   window.renderUpsolvePage = function () {
-    const el = document.getElementById('upsolve-page-root');
-    if (!el || typeof window.renderUpsolve !== 'function') return;
-    window.renderUpsolve();
-    el.innerHTML = document.getElementById('upsolve-list')?.outerHTML ? '' : '';
-    const list = document.getElementById('upsolve-list');
-    if (list && list.parentElement?.id !== 'upsolve-page-root') {
-      el.appendChild(list);
-    }
+    if (typeof window.renderUpsolve === 'function') window.renderUpsolve();
   };
 
   window.renderContestCalendarPanel = function () {
@@ -499,7 +494,9 @@ export function initFeaturesV2(ctx) {
   window.scheduleRevisionSuccess = scheduleRevisionSuccess;
   window.scheduleRevisionFail = scheduleRevisionFail;
   window.findDuplicateGroups = () => findDuplicateGroups(state.problems);
+  window.normalizeProblemKey = normalizeProblemKey;
   window.openSettingsModal = () => openSettingsModal(ctx);
+  window.openGlobalSearch = openGlobalSearch;
 }
 
 function openGlobalSearch() {
@@ -596,7 +593,15 @@ function openSettingsModal(ctx) {
     <div class="section-head" style="margin-top:14px">Email reminders</div>
     <label style="display:flex;align-items:center;gap:8px;font-size:13px"><input type="checkbox" id="set-email-en" ${state.prefs.emailEnabled ? 'checked' : ''}> Enable email (requires SMTP on server)</label>
     <input class="form-input" id="set-email" placeholder="Email override (optional)" value="${state.prefs.emailAddress || ''}" style="margin-top:8px">
-  <button type="button" class="btn btn-ghost btn-sm" id="set-test-email" style="margin-top:8px">Send test email</button>
+    <button type="button" class="btn btn-ghost btn-sm" id="set-test-email" style="margin-top:8px">Send test email</button>
+    <button type="button" class="btn btn-ghost btn-sm" id="set-refresh-ratings" style="margin-top:8px">Refresh rating history</button>
+    <div class="section-head" style="margin-top:14px">Appearance</div>
+    <div class="form-group"><label class="form-label">Theme</label>
+      <select class="form-select form-input" id="set-theme">
+        <option value="dark"${(state.prefs.theme||'dark')!=='light'?' selected':''}>Dark</option>
+        <option value="light"${state.prefs.theme==='light'?' selected':''}>Light</option>
+      </select>
+    </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
       <button type="button" class="btn btn-ghost" onclick="document.getElementById('modal-settings').classList.add('hidden')">Cancel</button>
       <button type="button" class="btn btn-primary" id="set-save">Save</button>
@@ -612,6 +617,9 @@ function openSettingsModal(ctx) {
     state.prefs.customTags = (document.getElementById('set-custom-tags').value || '').split(',').map((t) => t.trim()).filter(Boolean);
     state.prefs.emailEnabled = document.getElementById('set-email-en').checked;
     state.prefs.emailAddress = document.getElementById('set-email').value.trim();
+    const theme = document.getElementById('set-theme')?.value || 'dark';
+    state.prefs.theme = theme;
+    if (typeof window.applyTheme === 'function') window.applyTheme(theme, false);
     await saveStateNow?.();
     showToast?.('Settings saved');
     modal.classList.add('hidden');
@@ -619,7 +627,7 @@ function openSettingsModal(ctx) {
   }, { once: true });
   document.getElementById('set-test-email')?.addEventListener('click', async () => {
     try {
-      await window.api?.request?.('/notifications/contest-reminders', { method: 'POST' });
+      await window.api?.sendContestReminders?.();
       showToast?.('Email request sent (if SMTP configured)');
     } catch (e) {
       showToast?.(e.message || 'Email failed');

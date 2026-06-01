@@ -56,4 +56,8 @@ export const api = {
   contestAnalytics: () => request('/contests/analytics'),
   sendContestReminders: () =>
     request('/notifications/contest-reminders', { method: 'POST' }),
+  forgotPassword: (email) =>
+    request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+  resetPassword: (token, password) =>
+    request('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, password }) }),
 };
