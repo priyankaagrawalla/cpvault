@@ -10,7 +10,7 @@ export function defaultPrefs() {
     goals: { dailyProblems: 1, weeklyProblems: 7, weeklyContests: 1 },
     customTags: [],
     tagAliases: {},
-    sync: { enabled: true, intervalHours: 24, lastSyncAt: null, platforms: ['cf', 'lc', 'at'] },
+    sync: { enabled: true, intervalHours: 24, lastSyncAt: null, platforms: ['cf', 'lc', 'at', 'cc'] },
     emailEnabled: false,
     emailAddress: '',
     ratingHistory: { codeforces: [], leetcode: [] },
@@ -372,6 +372,8 @@ export async function runBackgroundSync(ctx) {
     if (platforms.includes('cf') && document.getElementById('cf-handle')?.value?.trim()) await syncCF?.();
     if (platforms.includes('lc') && document.getElementById('lc-handle')?.value?.trim()) await syncLC?.();
     if (platforms.includes('at') && document.getElementById('at-handle')?.value?.trim()) await syncAT?.();
+    if (platforms.includes('cc') && ctx.syncCC) await ctx.syncCC();
+    if (platforms.includes('hr') && ctx.syncHR) await ctx.syncHR();
     state.prefs.sync.lastSyncAt = new Date().toISOString();
     await saveStateNow?.();
     showToast?.('Background sync finished');
@@ -464,8 +466,8 @@ export function initFeaturesV2(ctx) {
     }
   });
 
-  setInterval(() => runBackgroundSync({ ...ctx, syncCF, syncLC, syncAT }), 15 * 60 * 1000);
-  setTimeout(() => runBackgroundSync({ ...ctx, syncCF, syncLC, syncAT }), 8000);
+  setInterval(() => runBackgroundSync({ ...ctx, syncCF, syncLC, syncAT, syncCC: ctx.syncCC, syncHR: ctx.syncHR }), 15 * 60 * 1000);
+  setTimeout(() => runBackgroundSync({ ...ctx, syncCF, syncLC, syncAT, syncCC: ctx.syncCC, syncHR: ctx.syncHR }), 8000);
 
   window.renderV2DashboardExtras = function (actMap) {
     const progress = buildGoalsProgress(state, actMap, localDateKeyFromValue, localDateStr, addLocalDays, localDateFromParts);
