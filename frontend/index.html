@@ -437,9 +437,8 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
         <input class="sync-input" id="at-handle" placeholder="AtCoder user">
         <button class="sync-btn" onclick="syncAT()">Sync</button>
       </div>
-
       <div class="sync-status" id="sync-status"></div>
-      <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-top:6px" data-open-settings><i class="ti ti-settings"></i> Settings & goals</button>
+      <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-top:6px" data-open-settings onclick="(window.openSettingsModal||window.openSettingsDirect)?.()"><i class="ti ti-settings"></i> Settings & goals</button>
     </div>
     <div class="user-bar" id="user-bar">
       <strong id="user-display">—</strong>
@@ -967,7 +966,7 @@ async function loadStateFromServer(){
   window._userProfile=data.profile||{};
   initThemeFromStorage();
   if(typeof window.initFeaturesV2==='function'&&window.buildFeaturesContext){
-    window.initFeaturesV2(window.buildFeaturesContext());
+    try{window.initFeaturesV2(window.buildFeaturesContext());}catch(e){console.error('initFeaturesV2 error',e);}
   }
 }
 window.loadStateFromServer=loadStateFromServer;
@@ -1009,8 +1008,7 @@ async function flushSaveState(){
       handles:{
         codeforces:document.getElementById('cf-handle').value.trim(),
         leetcode:document.getElementById('lc-handle').value.trim(),
-        atcoder:document.getElementById('at-handle').value.trim(),
-
+        atcoder:document.getElementById('at-handle').value.trim()
       },
       prefs:state.prefs||{},
       profile:window._userProfile||{}
@@ -1034,8 +1032,7 @@ async function persistHandles(){
     await api.updateHandles({
       codeforces:document.getElementById('cf-handle').value.trim(),
       leetcode:document.getElementById('lc-handle').value.trim(),
-      atcoder:document.getElementById('at-handle').value.trim(),
-
+      atcoder:document.getElementById('at-handle').value.trim()
     });
   }catch(e){console.error(e);}
 }
@@ -1117,7 +1114,6 @@ async function syncAT(){
     setSyncStatus(`Found ${problems.length} AC problems`,'ok');
   }catch(e){setSyncStatus('Error: '+(e.message||'Failed'),'err');}
 }
-
 
 
 function setSyncStatus(msg,type){const el=document.getElementById('sync-status');el.innerHTML=msg;el.className='sync-status'+(type?' '+type:'');}
@@ -1343,24 +1339,28 @@ function localDateStr(date){
   return `${y}-${m}-${d}`;
 }
 
-/** Store solve time with timezone offset so dates survive server round-trips correctly.
- *  Without the offset, a UTC server re-interprets the bare local time as UTC,
- *  shifting dates for users whose timezone differs from the server. */
+/** Store solve time in local timezone (not UTC) so activity buckets match the calendar day. */
 function localDateTimeIso(date=new Date()){
   const pad=n=>String(n).padStart(2,'0');
-  const off=-date.getTimezoneOffset();
-  const sign=off>=0?'+':'-';
-  const absOff=Math.abs(off);
-  const tzH=pad(Math.floor(absOff/60));
-  const tzM=pad(absOff%60);
-  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}${sign}${tzH}:${tzM}`;
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 }
 
-/** Map any stored date/ISO to the user's local calendar day (YYYY-MM-DD). */
+/** Map any stored date/ISO to the user's local calendar day (YYYY-MM-DD).
+ *  A calendar day is 12:00 AM – 11:59 PM in the user's local timezone.
+ *  Bare ISO strings (no timezone offset like "2026-06-02T22:45:00") are
+ *  treated as LOCAL time by extracting the date part directly, preventing
+ *  browsers from mis-interpreting them as UTC (which would shift the day). */
 function localDateKeyFromValue(value){
   if(value==null||value==='')return '';
   const s=String(value).trim();
+  // Pure date (YYYY-MM-DD) — use as-is
   if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+  // Bare datetime with no timezone offset (e.g. "2026-06-02T22:45:00")
+  // Extract the date part directly to avoid browser UTC interpretation
+  if(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(s)&&!/[Zz]$/.test(s)&&!/[+\-]\d{2}:\d{2}$/.test(s)){
+    return s.substring(0,10);
+  }
+  // Date string with timezone info — parse and convert to local date
   const d=new Date(s);
   if(Number.isNaN(d.getTime())){
     const m=s.match(/^(\d{4}-\d{2}-\d{2})/);
@@ -1383,8 +1383,10 @@ function getActivityMap(){
     const d=localDateKeyFromValue(p.date);
     if(d)m[d]=(m[d]||0)+1;
   });
-  // NOTE: revisionHistory events are reviews, not new solves — they must NOT
-  // inflate the activity map, heatmap, streak, or daily/weekly counts.
+  (state.revisionHistory||[]).forEach(h=>{
+    const d=localDateKeyFromValue(h.date);
+    if(d)m[d]=(m[d]||0)+1;
+  });
   return m;
 }
 
@@ -1394,12 +1396,19 @@ function calcStreak(actMap){
     new Date().getMonth(),
     new Date().getDate()
   );
-  let streak=0;let best=0;let cur=0;
+  // Best streak: scan backwards over last 365 days
+  let best=0;let cur=0;
   for(let i=0;i<365;i++){
     const key=localDateStr(addLocalDays(todayLocal,-i));
     if(actMap[key]){cur++;if(cur>best)best=cur;}else cur=0;
   }
-  for(let i=0;i<365;i++){
+  // Current streak: a calendar day runs 12:00 AM – 11:59 PM.
+  // If today (i=0) has no activity yet (day just started), we still
+  // count the streak as alive — start counting from yesterday (i=1).
+  // If today DOES have activity, start counting from today (i=0).
+  let streak=0;
+  const startIdx=actMap[localDateStr(todayLocal)]?0:1;
+  for(let i=startIdx;i<365;i++){
     const key=localDateStr(addLocalDays(todayLocal,-i));
     if(actMap[key])streak++;else break;
   }
@@ -1503,25 +1512,30 @@ function renderDashboard(){
   document.getElementById('streak-num').textContent=streak;
   document.getElementById('streak-best').textContent=`Best: ${best} days`;
 
-  // Week stats
+  // Week stats - last 7 days with correct day labels
   const weekProbs=[];
+  const weekDays=[];
   const todayLocal=localDateFromParts(
     new Date().getFullYear(),
     new Date().getMonth(),
     new Date().getDate()
   );
+  const DAY_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   for(let i=0;i<7;i++){
-    weekProbs.push(actMap[localDateStr(addLocalDays(todayLocal,-i))]||0);
+    const d=addLocalDays(todayLocal,-i);
+    weekProbs.push(actMap[localDateStr(d)]||0);
+    weekDays.push(DAY_NAMES[d.getDay()]);
   }
   const weekTotal=weekProbs.reduce((a,b)=>a+b,0);
   document.getElementById('week-stats').innerHTML=`
     <div style="display:flex;align-items:flex-end;gap:4px;height:40px;margin-bottom:5px">
       ${weekProbs.slice().reverse().map((n,i)=>{
         const h=Math.max(4,Math.round((n/Math.max(...weekProbs,1))*38));
-        const cols=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+        const label=weekDays.slice().reverse()[i];
+        const isToday=(i===weekProbs.length-1);
         return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
-          <div style="width:100%;height:${h}px;background:${n?'var(--accent)':'var(--bg4)'};border-radius:3px 3px 0 0;opacity:${n?1:0.4};transition:height 0.4s"></div>
-          <div style="font-size:8px;color:var(--text3);font-family:'Space Mono',monospace">${cols[i]}</div>
+          <div style="width:100%;height:${h}px;background:${n?'var(--accent)':'var(--bg4)'};border-radius:3px 3px 0 0;opacity:${n?1:0.4};transition:height 0.4s${isToday?';box-shadow:0 0 6px rgba(91,141,238,0.4)':''}"></div>
+          <div style="font-size:8px;color:${isToday?'var(--accent)':'var(--text3)'};font-family:'Space Mono',monospace;font-weight:${isToday?700:400}">${label}</div>
         </div>`;}).join('')}
     </div>
     <div style="font-size:12px;color:var(--text2);font-family:'Space Mono',monospace"><span style="color:var(--accent);font-weight:700">${weekTotal}</span> problems this week</div>`;
@@ -3081,12 +3095,23 @@ window.buildFeaturesContext=function(){
     state,esc,STANDARD_TAGS,UNCATEGORIZED_TAG,
     getActivityMap,localDateKeyFromValue,localDateStr,addLocalDays,localDateFromParts,
     saveState,saveStateNow,showToast,openModal,closeModal,nav,renderPage,
-    syncCF,syncLC,syncAT,syncCC,syncHR,fetchAllContests,getContestEnd,
+    syncCF,syncLC,syncAT,fetchAllContests,getContestEnd,
     buildContestAnalytics,showImportPreview,
     fetchRatingHistory:async(s,h)=>{const{fetchRatingHistory}=await import('/src/features-v2.js');return fetchRatingHistory(s,h);}
   };
 };
-window.openGlobalSearch=function(){document.getElementById('global-search-overlay')?.classList.remove('hidden');};
+// Fallback: basic search opener (overridden by initFeaturesV2 with full functionality)
+window.openGlobalSearch=function(){
+  const ov=document.getElementById('global-search-overlay');
+  if(!ov)return;
+  ov.classList.remove('hidden');
+  const inp=document.getElementById('global-search-input');
+  if(inp){inp.value='';inp.focus();inp.dispatchEvent(new Event('input'));}
+};
+// Fallback: open settings directly (overridden by initFeaturesV2 listener)
+window.openSettingsDirect=function(){
+  if(typeof window.openSettingsModal==='function')window.openSettingsModal();
+};
 
 // App init runs after login via bootstrap.js enterApp()
 </script>

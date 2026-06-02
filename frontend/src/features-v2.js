@@ -221,7 +221,7 @@ export function renderGoalsCard(progress) {
       <div><div style="font-size:11px;color:var(--text3)">Contests (week)</div><div style="font-size:18px;font-weight:700;color:var(--amber)">${progress.weekContests}/${progress.weeklyContestGoal}</div>
         <div style="height:4px;background:var(--bg4);border-radius:2px;margin-top:6px"><div style="height:100%;width:${pct(progress.weekContests, progress.weeklyContestGoal)}%;background:var(--amber);border-radius:2px"></div></div></div>
     </div>
-    <button type="button" class="btn btn-ghost btn-sm" style="margin-top:10px" data-open-settings>Edit goals & sync</button>
+    <button type="button" class="btn btn-ghost btn-sm" style="margin-top:10px" data-open-settings onclick="(window.openSettingsModal||window.openSettingsDirect)?.()">Edit goals &amp; sync</button>
   </div>`;
 }
 
@@ -372,8 +372,7 @@ export async function runBackgroundSync(ctx) {
     if (platforms.includes('cf') && document.getElementById('cf-handle')?.value?.trim()) await syncCF?.();
     if (platforms.includes('lc') && document.getElementById('lc-handle')?.value?.trim()) await syncLC?.();
     if (platforms.includes('at') && document.getElementById('at-handle')?.value?.trim()) await syncAT?.();
-    if (platforms.includes('cc') && ctx.syncCC) await ctx.syncCC();
-    if (platforms.includes('hr') && ctx.syncHR) await ctx.syncHR();
+
     state.prefs.sync.lastSyncAt = new Date().toISOString();
     await saveStateNow?.();
     showToast?.('Background sync finished');
@@ -466,8 +465,8 @@ export function initFeaturesV2(ctx) {
     }
   });
 
-  setInterval(() => runBackgroundSync({ ...ctx, syncCF, syncLC, syncAT, syncCC: ctx.syncCC, syncHR: ctx.syncHR }), 15 * 60 * 1000);
-  setTimeout(() => runBackgroundSync({ ...ctx, syncCF, syncLC, syncAT, syncCC: ctx.syncCC, syncHR: ctx.syncHR }), 8000);
+  setInterval(() => runBackgroundSync({ ...ctx, syncCF, syncLC, syncAT }), 15 * 60 * 1000);
+  setTimeout(() => runBackgroundSync({ ...ctx, syncCF, syncLC, syncAT }), 8000);
 
   window.renderV2DashboardExtras = function (actMap) {
     const progress = buildGoalsProgress(state, actMap, localDateKeyFromValue, localDateStr, addLocalDays, localDateFromParts);
