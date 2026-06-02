@@ -437,16 +437,7 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
         <input class="sync-input" id="at-handle" placeholder="AtCoder user">
         <button class="sync-btn" onclick="syncAT()">Sync</button>
       </div>
-      <div class="sync-row">
-        <div class="sync-dot" style="background:#22d3a0"></div>
-        <input class="sync-input" id="cc-handle" placeholder="CodeChef user">
-        <button class="sync-btn" onclick="syncCC()">Sync</button>
-      </div>
-      <div class="sync-row">
-        <div class="sync-dot" style="background:#f74f6a"></div>
-        <input class="sync-input" id="hr-handle" placeholder="HackerRank user">
-        <button class="sync-btn" onclick="syncHR()">Sync</button>
-      </div>
+
       <div class="sync-status" id="sync-status"></div>
       <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-top:6px" data-open-settings><i class="ti ti-settings"></i> Settings & goals</button>
     </div>
@@ -972,8 +963,7 @@ async function loadStateFromServer(){
   document.getElementById('cf-handle').value=h.codeforces||'';
   document.getElementById('lc-handle').value=h.leetcode||'';
   document.getElementById('at-handle').value=h.atcoder||'';
-  document.getElementById('cc-handle').value=h.codechef||'';
-  document.getElementById('hr-handle').value=h.hackerrank||'';
+
   window._userProfile=data.profile||{};
   initThemeFromStorage();
   if(typeof window.initFeaturesV2==='function'&&window.buildFeaturesContext){
@@ -1020,8 +1010,7 @@ async function flushSaveState(){
         codeforces:document.getElementById('cf-handle').value.trim(),
         leetcode:document.getElementById('lc-handle').value.trim(),
         atcoder:document.getElementById('at-handle').value.trim(),
-        codechef:document.getElementById('cc-handle').value.trim(),
-        hackerrank:document.getElementById('hr-handle').value.trim()
+
       },
       prefs:state.prefs||{},
       profile:window._userProfile||{}
@@ -1046,8 +1035,7 @@ async function persistHandles(){
       codeforces:document.getElementById('cf-handle').value.trim(),
       leetcode:document.getElementById('lc-handle').value.trim(),
       atcoder:document.getElementById('at-handle').value.trim(),
-      codechef:document.getElementById('cc-handle').value.trim(),
-      hackerrank:document.getElementById('hr-handle').value.trim()
+
     });
   }catch(e){console.error(e);}
 }
@@ -1130,52 +1118,7 @@ async function syncAT(){
   }catch(e){setSyncStatus('Error: '+(e.message||'Failed'),'err');}
 }
 
-async function syncCC(){
-  const user=document.getElementById('cc-handle').value.trim();
-  if(!user){setSyncStatus('Enter your CodeChef username','err');return;}
-  persistHandles();
-  setSyncStatus('<span class="spinner"></span> Fetching CodeChef...','');
-  try{
-    const res=await fetch(`https://www.codechef.com/users/${encodeURIComponent(user)}`);
-    const html=await res.text();
-    const problems=[];
-    const re=/href="(\/[^"]*\/problems\/[^"]+)"/gi;
-    let m;const seen=new Set();
-    while((m=re.exec(html))!==null){
-      const path=m[1];
-      const name=path.split('/').pop().replace(/-/g,' ');
-      if(seen.has(path))continue;
-      seen.add(path);
-      problems.push({name,platform:'CodeChef',rating:'',tags:[UNCATEGORIZED_TAG],attempts:0,url:'https://www.codechef.com'+path,date:localDateTimeIso()});
-    }
-    if(!problems.length)throw new Error('No problems found — profile may be private');
-    showImportPreview(problems,`CodeChef — ${user}`);
-    setSyncStatus(`Found ${problems.length} problems (profile scrape)`,'ok');
-  }catch(e){setSyncStatus('Error: '+(e.message||'Failed'),'err');}
-}
 
-async function syncHR(){
-  const user=document.getElementById('hr-handle').value.trim();
-  if(!user){setSyncStatus('Enter your HackerRank username','err');return;}
-  persistHandles();
-  setSyncStatus('<span class="spinner"></span> Fetching HackerRank...','');
-  try{
-    const res=await fetch(`https://www.hackerrank.com/rest/contests/master/hackers/${encodeURIComponent(user)}/recent_challenges?offset=0&limit=200`);
-    const data=await res.json();
-    const models=data.models||data||[];
-    const problems=[];
-    const seen=new Set();
-    (Array.isArray(models)?models:[]).forEach(ch=>{
-      const name=ch.challenge_name||ch.name||'';
-      if(!name||seen.has(name))return;
-      seen.add(name);
-      const slug=ch.slug||name.toLowerCase().replace(/\s+/g,'-');
-      problems.push({name,platform:'HackerRank',rating:ch.difficulty||'',tags:normalizeTags(ch.tags||[]).length?normalizeTags(ch.tags||[]):[UNCATEGORIZED_TAG],attempts:0,url:`https://www.hackerrank.com/challenges/${slug}`,date:localDateTimeIso()});
-    });
-    showImportPreview(problems,`HackerRank — ${user}`);
-    setSyncStatus(`Found ${problems.length} challenges`,'ok');
-  }catch(e){setSyncStatus('Error: '+(e.message||'HR API blocked — try later'),'err');}
-}
 
 function setSyncStatus(msg,type){const el=document.getElementById('sync-status');el.innerHTML=msg;el.className='sync-status'+(type?' '+type:'');}
 
