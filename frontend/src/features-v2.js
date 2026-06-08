@@ -10,7 +10,7 @@ export function defaultPrefs() {
     goals: { dailyProblems: 1, weeklyProblems: 7, weeklyContests: 1 },
     customTags: [],
     tagAliases: {},
-    sync: { enabled: true, intervalHours: 24, lastSyncAt: null, platforms: ['cf', 'lc', 'at', 'cses', 'cc'] },
+    sync: { enabled: true, intervalHours: 24, lastSyncAt: null, platforms: ['cf', 'lc', 'at', 'cses'] },
     emailEnabled: false,
     emailAddress: '',
     ratingHistory: { codeforces: [], leetcode: [] },
@@ -28,6 +28,8 @@ export function ensurePrefs(state) {
   const d = defaultPrefs();
   state.prefs.goals = { ...d.goals, ...(state.prefs.goals || {}) };
   state.prefs.sync = { ...d.sync, ...(state.prefs.sync || {}) };
+  state.prefs.sync.platforms = (state.prefs.sync.platforms || d.sync.platforms).filter((p) => p !== 'cc' && p !== 'hr');
+  if (!state.prefs.sync.platforms.length) state.prefs.sync.platforms = [...d.sync.platforms];
   state.prefs.customTags = state.prefs.customTags || [];
   state.prefs.tagAliases = state.prefs.tagAliases || {};
   state.prefs.ratingHistory = state.prefs.ratingHistory || { codeforces: [], leetcode: [] };
@@ -171,17 +173,18 @@ export function countActivityThisWeek(state, localDateKeyFromValue, localDateStr
 
 export function buildGoalsProgress(state, actMap, localDateKeyFromValue, localDateStr, addLocalDays, localDateFromParts) {
   const g = state.prefs?.goals || defaultPrefs().goals;
-  const today = localDateKeyFromValue(new Date());
-  let todayCount = 0;
-  state.problems.forEach((p) => {
-    if (localDateKeyFromValue(p.date) === today) todayCount++;
-  });
+  const todayKey = localDateKeyFromValue(new Date());
   const todayLocal = todayFromDateHelpers(localDateKeyFromValue, localDateFromParts);
+  const weekKeys = new Set();
+  for (let i = 0; i < 7; i++) weekKeys.add(localDateStr(addLocalDays(todayLocal, -i)));
+  let todayCount = 0;
   let weekCount = 0;
-  for (let i = 0; i < 7; i++) {
-    const key = localDateStr(addLocalDays(todayLocal, -i));
-    weekCount += actMap[key] || 0;
-  }
+  state.problems.forEach((p) => {
+    const d = localDateKeyFromValue(p.date);
+    if (!d) return;
+    if (d === todayKey) todayCount++;
+    if (weekKeys.has(d)) weekCount++;
+  });
   const weekContests = (state.contestPerformances || []).filter((c) => {
     const d = localDateKeyFromValue(c.contestDate || c.date);
     for (let i = 0; i < 7; i++) {
@@ -221,10 +224,37 @@ export function downloadText(filename, content, mime) {
   URL.revokeObjectURL(a.href);
 }
 
+export function renderNearestCfContest(state, esc, getUpcomingContests, formatCountdown) {
+  const upcoming = (getUpcomingContests?.() || [])
+    .filter((c) => c.platform === 'Codeforces')
+    .slice(0, 1);
+  if (!upcoming.length) {
+    return `<div class="card" style="margin-bottom:14px;height:100%">
+      <div class="section-head">Next Codeforces Contest</div>
+      <div style="color:var(--text3);font-size:13px">No upcoming contest.</div>
+    </div>`;
+  }
+  const c = upcoming[0];
+  const diff = Math.max(0, new Date(c.date).getTime() - Date.now());
+  const countdown = formatCountdown ? formatCountdown(diff) : '';
+  const startStr = new Date(c.date).toLocaleString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
+  return `<div class="card" style="margin-bottom:14px;height:100%">
+    <div class="section-head">Next Codeforces Contest</div>
+    <div style="font-size:14px;font-weight:600;margin-bottom:4px;line-height:1.35">${esc(c.name)}</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px">${startStr} IST · ${c.duration} min</div>
+    <div style="font-size:22px;font-weight:700;color:var(--accent);font-family:'Space Mono',monospace" class="countdown">${esc(countdown)}</div>
+    ${c.url ? `<a href="${esc(c.url)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent);margin-top:10px;display:inline-block">View on Codeforces ↗</a>` : ''}
+  </div>`;
+}
+
 export function renderGoalsCard(progress) {
   const pct = (a, b) => Math.min(100, Math.round((a / Math.max(1, b)) * 100));
-  return `<div class="card" style="margin-bottom:14px">
-    <div class="section-head">Goals</div>
+  return `<div class="card" style="margin-bottom:14px;height:100%">
+    <div class="section-head">Goals <span style="font-size:10px;color:var(--text3);font-weight:400">(IST)</span></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px">
       <div><div style="font-size:11px;color:var(--text3)">Today</div><div style="font-size:18px;font-weight:700;color:var(--accent)">${progress.todayCount}/${progress.dailyGoal}</div>
         <div style="height:4px;background:var(--bg4);border-radius:2px;margin-top:6px"><div style="height:100%;width:${pct(progress.todayCount, progress.dailyGoal)}%;background:var(--accent);border-radius:2px"></div></div></div>
@@ -395,8 +425,6 @@ export async function runBackgroundSync(ctx) {
     if (platforms.includes('lc') && document.getElementById('lc-handle')?.value?.trim()) await syncLC?.();
     if (platforms.includes('at') && document.getElementById('at-handle')?.value?.trim()) await syncAT?.();
     if (platforms.includes('cses') && document.getElementById('cses-handle')?.value?.trim()) await syncCSES?.();
-    if (platforms.includes('cc') && ctx.syncCC) await ctx.syncCC();
-    if (platforms.includes('hr') && ctx.syncHR) await ctx.syncHR();
     state.prefs.sync.lastSyncAt = new Date().toISOString();
     await saveStateNow?.();
     showToast?.('Background sync finished');
@@ -432,6 +460,8 @@ export function initFeaturesV2(ctx) {
     getContestEnd,
     buildContestAnalytics,
     showImportPreview,
+    getUpcomingContests,
+    formatCountdown,
   } = ctx;
 
   ensurePrefs(state);
@@ -490,13 +520,17 @@ export function initFeaturesV2(ctx) {
     }
   });
 
-  setInterval(() => runBackgroundSync({ ...ctx, syncCF, syncLC, syncAT, syncCSES, syncCC: ctx.syncCC, syncHR: ctx.syncHR }), 15 * 60 * 1000);
-  setTimeout(() => runBackgroundSync({ ...ctx, syncCF, syncLC, syncAT, syncCSES, syncCC: ctx.syncCC, syncHR: ctx.syncHR }), 8000);
+  setInterval(() => runBackgroundSync({ ...ctx, syncCF, syncLC, syncAT, syncCSES }), 15 * 60 * 1000);
+  setTimeout(() => runBackgroundSync({ ...ctx, syncCF, syncLC, syncAT, syncCSES }), 8000);
 
   window.renderV2DashboardExtras = function (actMap) {
     const progress = buildGoalsProgress(state, actMap, localDateKeyFromValue, localDateStr, addLocalDays, localDateFromParts);
     const recent = getRecentProblems(state);
-    return renderGoalsCard(progress) + renderRecentProblems(recent, esc) + renderComparePeriods(state, localDateKeyFromValue, localDateStr, addLocalDays, localDateFromParts);
+    const topRow = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;align-items:stretch">
+      ${renderGoalsCard(progress)}
+      ${renderNearestCfContest(state, esc, getUpcomingContests, formatCountdown)}
+    </div>`;
+    return topRow + renderRecentProblems(recent, esc) + renderComparePeriods(state, localDateKeyFromValue, localDateStr, addLocalDays, localDateFromParts);
   };
   window.getPracticeRecommendations = () => getPracticeRecommendations(state);
 

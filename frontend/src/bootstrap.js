@@ -190,6 +190,7 @@ window.enterApp = async function (user) {
       updateBadges();
       startContestScheduler();
       renderDashboard();
+      if(typeof window.ensureCfContestsForDashboard==='function')void window.ensureCfContestsForDashboard();
     } catch (e) {
       console.error('Load failed:', e);
       showAuthError('Could not load data: ' + (e.message || 'server error') + '. Run: cd backend && npm run db:init');

@@ -442,16 +442,6 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
         <input class="sync-input" id="cses-handle" placeholder="CSES user">
         <button class="sync-btn" onclick="syncCSES()">Sync</button>
       </div>
-      <div class="sync-row">
-        <div class="sync-dot" style="background:#22d3a0"></div>
-        <input class="sync-input" id="cc-handle" placeholder="CodeChef user">
-        <button class="sync-btn" onclick="syncCC()">Sync</button>
-      </div>
-      <div class="sync-row">
-        <div class="sync-dot" style="background:#f74f6a"></div>
-        <input class="sync-input" id="hr-handle" placeholder="HackerRank user">
-        <button class="sync-btn" onclick="syncHR()">Sync</button>
-      </div>
       <div class="sync-status" id="sync-status"></div>
       <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-top:6px" data-open-settings><i class="ti ti-settings"></i> Settings & goals</button>
     </div>
@@ -519,15 +509,11 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
             <div id="dash-recent"></div>
           </div>
         </div>
-        <!-- Row 3: Platform dist + Upcoming contests -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <!-- Row 3: Platform dist -->
+        <div>
           <div class="card">
             <div class="section-head">Platform Distribution</div>
             <div id="dash-platform-bars"></div>
-          </div>
-          <div class="card">
-            <div class="section-head">Next Codeforces Contest</div>
-            <div id="dash-contests"></div>
           </div>
         </div>
       </div>
@@ -978,8 +964,6 @@ async function loadStateFromServer(){
   document.getElementById('lc-handle').value=h.leetcode||'';
   document.getElementById('at-handle').value=h.atcoder||'';
   document.getElementById('cses-handle').value=h.cses||'';
-  document.getElementById('cc-handle').value=h.codechef||'';
-  document.getElementById('hr-handle').value=h.hackerrank||'';
   window._userProfile=data.profile||{};
   initThemeFromStorage();
   if(typeof window.initFeaturesV2==='function'&&window.buildFeaturesContext){
@@ -1026,9 +1010,7 @@ async function flushSaveState(){
         codeforces:document.getElementById('cf-handle').value.trim(),
         leetcode:document.getElementById('lc-handle').value.trim(),
         atcoder:document.getElementById('at-handle').value.trim(),
-        cses:document.getElementById('cses-handle').value.trim(),
-        codechef:document.getElementById('cc-handle').value.trim(),
-        hackerrank:document.getElementById('hr-handle').value.trim()
+        cses:document.getElementById('cses-handle').value.trim()
       },
       prefs:state.prefs||{},
       profile:window._userProfile||{}
@@ -1053,9 +1035,7 @@ async function persistHandles(){
       codeforces:document.getElementById('cf-handle').value.trim(),
       leetcode:document.getElementById('lc-handle').value.trim(),
       atcoder:document.getElementById('at-handle').value.trim(),
-      cses:document.getElementById('cses-handle').value.trim(),
-      codechef:document.getElementById('cc-handle').value.trim(),
-      hackerrank:document.getElementById('hr-handle').value.trim()
+      cses:document.getElementById('cses-handle').value.trim()
     });
   }catch(e){console.error(e);}
 }
@@ -1157,52 +1137,6 @@ async function syncCSES(){
     const added=await autoImportProblems(problems,`CSES — ${user}`);
     setSyncStatus(`Synced ${problems.length} CSES tasks · ${added} new`,'ok');
   }catch(e){setSyncStatus('Error: '+(e.message||'Failed'),'err');}
-}
-
-async function syncCC(){
-  const user=document.getElementById('cc-handle').value.trim();
-  if(!user){setSyncStatus('Enter your CodeChef username','err');return;}
-  persistHandles();
-  setSyncStatus('<span class="spinner"></span> Fetching CodeChef...','');
-  try{
-    const html=await fetchTextWithProxy(`https://www.codechef.com/users/${encodeURIComponent(user)}`);
-    const problems=[];
-    const re=/href="(\/[^"]*\/problems\/[^"]+)"/gi;
-    let m;const seen=new Set();
-    while((m=re.exec(html))!==null){
-      const path=m[1];
-      const name=path.split('/').pop().replace(/-/g,' ');
-      if(seen.has(path))continue;
-      seen.add(path);
-      problems.push({name,platform:'CodeChef',rating:'',tags:[UNCATEGORIZED_TAG],attempts:0,url:'https://www.codechef.com'+path,date:localDateTimeIso()});
-    }
-    if(!problems.length)throw new Error('No problems found — profile may be private');
-    const added=await autoImportProblems(problems,`CodeChef — ${user}`);
-    setSyncStatus(`Synced ${problems.length} problems · ${added} new`,'ok');
-  }catch(e){setSyncStatus('Error: '+(e.message||'Failed'),'err');}
-}
-
-async function syncHR(){
-  const user=document.getElementById('hr-handle').value.trim();
-  if(!user){setSyncStatus('Enter your HackerRank username','err');return;}
-  persistHandles();
-  setSyncStatus('<span class="spinner"></span> Fetching HackerRank...','');
-  try{
-    const res=await fetch(`https://www.hackerrank.com/rest/contests/master/hackers/${encodeURIComponent(user)}/recent_challenges?offset=0&limit=200`);
-    const data=await res.json();
-    const models=data.models||data||[];
-    const problems=[];
-    const seen=new Set();
-    (Array.isArray(models)?models:[]).forEach(ch=>{
-      const name=ch.challenge_name||ch.name||'';
-      if(!name||seen.has(name))return;
-      seen.add(name);
-      const slug=ch.slug||name.toLowerCase().replace(/\s+/g,'-');
-      problems.push({name,platform:'HackerRank',rating:ch.difficulty||'',tags:normalizeTags(ch.tags||[]).length?normalizeTags(ch.tags||[]):[UNCATEGORIZED_TAG],attempts:0,url:`https://www.hackerrank.com/challenges/${slug}`,date:localDateTimeIso()});
-    });
-    const added=await autoImportProblems(problems,`HackerRank — ${user}`);
-    setSyncStatus(`Synced ${problems.length} challenges · ${added} new`,'ok');
-  }catch(e){setSyncStatus('Error: '+(e.message||'HR API blocked — try later'),'err');}
 }
 
 function setSyncStatus(msg,type){const el=document.getElementById('sync-status');el.innerHTML=msg;el.className='sync-status'+(type?' '+type:'');}
@@ -1699,13 +1633,8 @@ function renderDashboard(){
     return`<div class="chart-row"><div class="chart-label" style="min-width:95px;font-size:11px"><span class="plat plat-${platCode(plat)}"></span>${plat}</div><div class="chart-bar-wrap"><div class="chart-bar" style="width:${Math.max(10,pct)}%;background:${col}">${count}</div></div></div>`;
   }).join(''):'<div style="color:var(--text3);font-size:13px">No problems yet.</div>';
 
-  // Contests
+  // Contests lifecycle (nearest CF contest shown beside goals in v2 extras)
   processContestLifecycle();
-  const upcoming=getUpcomingContests().filter(c=>c.platform==='Codeforces').slice(0,1);
-  document.getElementById('dash-contests').innerHTML=upcoming.length?upcoming.map(c=>{
-    const diff=Math.max(0,new Date(c.date)-Date.now());const days=Math.floor(diff/86400000);const hrs=Math.floor((diff%86400000)/3600000);
-    return`<div style="padding:8px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600">${esc(c.name)}</div><div style="display:flex;justify-content:space-between;margin-top:3px"><span style="font-size:11px;color:var(--text3)">${c.platform} · ${c.duration}min</span><span class="countdown">${days>0?days+'d '+hrs+'h':hrs+'h'}</span></div></div>`;
-  }).join(''):'<div style="color:var(--text3);font-size:13px">No upcoming Codeforces contest. <a href="#" onclick="nav(\'contests\');fetchAllContests();return false">Refresh</a></div>';
   const v2=document.getElementById('dash-v2-extras');
   if(v2&&typeof window.renderV2DashboardExtras==='function')v2.innerHTML=window.renderV2DashboardExtras(actMap);
   const dupEl=document.getElementById('dash-dup-banner');
@@ -2182,6 +2111,31 @@ function mergeContests(fetched){
   state.contestsLastFetched=new Date().toISOString();
   saveState();
 }
+
+function mergePlatformContests(platform,fetched){
+  const prevMap={};
+  state.contests.forEach(c=>{prevMap[c.id]=c;});
+  fetched.forEach(c=>{
+    const prev=prevMap[c.id];
+    c.reminders=prev?.reminders||[];
+    c.firedReminders=prev?.firedReminders||[];
+    c.upsolveAdded=prev?.upsolveAdded||false;
+  });
+  const fetchedIds=new Set(fetched.map(c=>c.id));
+  const kept=state.contests.filter(c=>c.platform!==platform||(c.source==='manual'&&!fetchedIds.has(c.id)&&getContestEnd(c)>Date.now()));
+  state.contests=[...kept,...fetched];
+  state.contestsLastFetched=new Date().toISOString();
+  saveState();
+}
+
+async function ensureCfContestsForDashboard(){
+  try{
+    const cf=await fetchCFContests();
+    mergePlatformContests('Codeforces',cf);
+    if(state.currentPage==='dashboard'&&typeof renderDashboard==='function')renderDashboard();
+  }catch(e){console.warn('Codeforces contest fetch failed',e);}
+}
+window.ensureCfContestsForDashboard=ensureCfContestsForDashboard;
 
 async function fetchAllContests(){
   const el=document.getElementById('contest-fetch-status');
@@ -3225,7 +3179,7 @@ window.buildFeaturesContext=function(){
     state,esc,STANDARD_TAGS,UNCATEGORIZED_TAG,
     getActivityMap,localDateKeyFromValue,localDateStr,addLocalDays,localDateFromParts,
     saveState,saveStateNow,showToast,openModal,closeModal,nav,renderPage,
-    syncCF,syncLC,syncAT,syncCSES,syncCC,syncHR,fetchAllContests,getContestEnd,
+    syncCF,syncLC,syncAT,syncCSES,fetchAllContests,getContestEnd,getUpcomingContests,formatCountdown,
     buildContestAnalytics,showImportPreview,
     fetchRatingHistory:async(s,h)=>{const{fetchRatingHistory}=await import('/src/features-v2.js');return fetchRatingHistory(s,h);}
   };
