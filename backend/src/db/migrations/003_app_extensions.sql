@@ -14,3 +14,6 @@ ALTER TABLE platform_handles
 
 ALTER TABLE platform_handles
   ADD COLUMN IF NOT EXISTS hackerrank_handle VARCHAR(100);
+
+ALTER TABLE platform_handles
+  ADD COLUMN IF NOT EXISTS cses_handle VARCHAR(100);

@@ -120,6 +120,7 @@ export async function loadFullState(userId) {
       codeforces: handles?.codeforces_handle || '',
       leetcode: handles?.leetcode_handle || '',
       atcoder: handles?.atcoder_handle || '',
+      cses: handles?.cses_handle || '',
       codechef: handles?.codechef_handle || '',
       hackerrank: handles?.hackerrank_handle || '',
     },
@@ -160,13 +161,14 @@ export async function saveFullState(userId, data) {
       await client.query(
         `UPDATE platform_handles SET
           codeforces_handle = $2, leetcode_handle = $3, atcoder_handle = $4,
-          codechef_handle = $5, hackerrank_handle = $6, updated_at = NOW()
+          cses_handle = $5, codechef_handle = $6, hackerrank_handle = $7, updated_at = NOW()
          WHERE user_id = $1`,
         [
           userId,
           data.handles.codeforces || null,
           data.handles.leetcode || null,
           data.handles.atcoder || null,
+          data.handles.cses || null,
           data.handles.codechef || null,
           data.handles.hackerrank || null,
         ]

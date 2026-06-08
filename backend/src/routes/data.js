@@ -50,6 +50,7 @@ router.post('/import-local', requireAuth, async (req, res) => {
         codeforces: handles.codeforces || '',
         leetcode: handles.leetcode || '',
         atcoder: handles.atcoder || '',
+        cses: handles.cses || '',
       };
     }
 

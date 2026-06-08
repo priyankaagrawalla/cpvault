@@ -10,12 +10,17 @@ export function defaultPrefs() {
     goals: { dailyProblems: 1, weeklyProblems: 7, weeklyContests: 1 },
     customTags: [],
     tagAliases: {},
-    sync: { enabled: true, intervalHours: 24, lastSyncAt: null, platforms: ['cf', 'lc', 'at', 'cc'] },
+    sync: { enabled: true, intervalHours: 24, lastSyncAt: null, platforms: ['cf', 'lc', 'at', 'cses', 'cc'] },
     emailEnabled: false,
     emailAddress: '',
     ratingHistory: { codeforces: [], leetcode: [] },
     theme: 'dark',
   };
+}
+
+function todayFromDateHelpers(localDateKeyFromValue, localDateFromParts) {
+  const [y, m, d] = localDateKeyFromValue(new Date()).split('-').map(Number);
+  return localDateFromParts(y, m - 1, d);
 }
 
 export function ensurePrefs(state) {
@@ -136,6 +141,13 @@ export function getPracticeRecommendations(state, limit = 5) {
   return candidates.slice(0, limit);
 }
 
+export function getRecentProblems(state, limit = 5) {
+  return (state.problems || [])
+    .slice()
+    .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+    .slice(0, limit);
+}
+
 export function countActivityToday(state, localDateKeyFromValue) {
   const today = localDateKeyFromValue(new Date());
   let n = 0;
@@ -145,13 +157,13 @@ export function countActivityToday(state, localDateKeyFromValue) {
   return n;
 }
 
-export function countActivityThisWeek(state, localDateStr, addLocalDays, localDateFromParts) {
-  const today = localDateFromParts(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+export function countActivityThisWeek(state, localDateKeyFromValue, localDateStr, addLocalDays, localDateFromParts) {
+  const today = todayFromDateHelpers(localDateKeyFromValue, localDateFromParts);
   let n = 0;
   for (let i = 0; i < 7; i++) {
     const key = localDateStr(addLocalDays(today, -i));
     state.problems.forEach((p) => {
-      /* caller passes actMap preferred */
+      if (localDateKeyFromValue(p.date) === key) n++;
     });
   }
   return n;
@@ -164,7 +176,7 @@ export function buildGoalsProgress(state, actMap, localDateKeyFromValue, localDa
   state.problems.forEach((p) => {
     if (localDateKeyFromValue(p.date) === today) todayCount++;
   });
-  const todayLocal = localDateFromParts(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+  const todayLocal = todayFromDateHelpers(localDateKeyFromValue, localDateFromParts);
   let weekCount = 0;
   for (let i = 0; i < 7; i++) {
     const key = localDateStr(addLocalDays(todayLocal, -i));
@@ -221,7 +233,7 @@ export function renderGoalsCard(progress) {
       <div><div style="font-size:11px;color:var(--text3)">Contests (week)</div><div style="font-size:18px;font-weight:700;color:var(--amber)">${progress.weekContests}/${progress.weeklyContestGoal}</div>
         <div style="height:4px;background:var(--bg4);border-radius:2px;margin-top:6px"><div style="height:100%;width:${pct(progress.weekContests, progress.weeklyContestGoal)}%;background:var(--amber);border-radius:2px"></div></div></div>
     </div>
-    <button type="button" class="btn btn-ghost btn-sm" style="margin-top:10px" data-open-settings onclick="(window.openSettingsModal||window.openSettingsDirect)?.()">Edit goals &amp; sync</button>
+    <button type="button" class="btn btn-ghost btn-sm" style="margin-top:10px" data-open-settings>Edit goals & sync</button>
   </div>`;
 }
 
@@ -235,8 +247,18 @@ export function renderRecommendations(recs, esc) {
   </div>`;
 }
 
+export function renderRecentProblems(problems, esc) {
+  if (!problems.length) return '';
+  return `<div class="card" style="margin-bottom:14px"><div class="section-head">Recent problems</div>
+    ${problems.map((p) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div><div style="font-weight:600;font-size:13px">${esc(p.name)}</div><div style="font-size:11px;color:var(--text3)">${esc(p.platform)} · ${(p.tags || []).slice(0, 2).join(', ') || 'no topics'}</div></div>
+      <button type="button" class="btn btn-ghost btn-sm" data-view-problem="${esc(String(p.id))}">Open</button>
+    </div>`).join('')}
+  </div>`;
+}
+
 export function renderComparePeriods(state, localDateKeyFromValue, localDateStr, addLocalDays, localDateFromParts) {
-  const todayLocal = localDateFromParts(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+  const todayLocal = todayFromDateHelpers(localDateKeyFromValue, localDateFromParts);
   const countRange = (startOff, endOff) => {
     let n = 0;
     for (let i = startOff; i <= endOff; i++) {
@@ -360,19 +382,21 @@ export async function fetchRatingHistory(state, handles) {
 }
 
 export async function runBackgroundSync(ctx) {
-  const { state, syncCF, syncLC, syncAT, showToast, saveStateNow } = ctx;
+  const { state, syncCF, syncLC, syncAT, syncCSES, showToast, saveStateNow } = ctx;
   const sync = state.prefs?.sync;
   if (!sync?.enabled) return;
   const hours = sync.intervalHours || 24;
   const last = sync.lastSyncAt ? new Date(sync.lastSyncAt).getTime() : 0;
   if (Date.now() - last < hours * 3600000) return;
-  const platforms = sync.platforms || ['cf', 'lc', 'at'];
+  const platforms = sync.platforms || ['cf', 'lc', 'at', 'cses'];
   showToast?.('Background sync started…');
   try {
     if (platforms.includes('cf') && document.getElementById('cf-handle')?.value?.trim()) await syncCF?.();
     if (platforms.includes('lc') && document.getElementById('lc-handle')?.value?.trim()) await syncLC?.();
     if (platforms.includes('at') && document.getElementById('at-handle')?.value?.trim()) await syncAT?.();
-
+    if (platforms.includes('cses') && document.getElementById('cses-handle')?.value?.trim()) await syncCSES?.();
+    if (platforms.includes('cc') && ctx.syncCC) await ctx.syncCC();
+    if (platforms.includes('hr') && ctx.syncHR) await ctx.syncHR();
     state.prefs.sync.lastSyncAt = new Date().toISOString();
     await saveStateNow?.();
     showToast?.('Background sync finished');
@@ -403,6 +427,7 @@ export function initFeaturesV2(ctx) {
     syncCF,
     syncLC,
     syncAT,
+    syncCSES,
     fetchAllContests,
     getContestEnd,
     buildContestAnalytics,
@@ -465,14 +490,15 @@ export function initFeaturesV2(ctx) {
     }
   });
 
-  setInterval(() => runBackgroundSync({ ...ctx, syncCF, syncLC, syncAT }), 15 * 60 * 1000);
-  setTimeout(() => runBackgroundSync({ ...ctx, syncCF, syncLC, syncAT }), 8000);
+  setInterval(() => runBackgroundSync({ ...ctx, syncCF, syncLC, syncAT, syncCSES, syncCC: ctx.syncCC, syncHR: ctx.syncHR }), 15 * 60 * 1000);
+  setTimeout(() => runBackgroundSync({ ...ctx, syncCF, syncLC, syncAT, syncCSES, syncCC: ctx.syncCC, syncHR: ctx.syncHR }), 8000);
 
   window.renderV2DashboardExtras = function (actMap) {
     const progress = buildGoalsProgress(state, actMap, localDateKeyFromValue, localDateStr, addLocalDays, localDateFromParts);
-    const recs = getPracticeRecommendations(state);
-    return renderGoalsCard(progress) + renderRecommendations(recs, esc) + renderComparePeriods(state, localDateKeyFromValue, localDateStr, addLocalDays, localDateFromParts);
+    const recent = getRecentProblems(state);
+    return renderGoalsCard(progress) + renderRecentProblems(recent, esc) + renderComparePeriods(state, localDateKeyFromValue, localDateStr, addLocalDays, localDateFromParts);
   };
+  window.getPracticeRecommendations = () => getPracticeRecommendations(state);
 
   window.renderV2AnalysisExtras = function () {
     return `<div class="card" style="margin-top:14px"><div class="section-head">Rating progression (by bucket)</div>${renderRatingProgression(state)}</div>

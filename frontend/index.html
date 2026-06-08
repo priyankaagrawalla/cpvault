@@ -125,7 +125,7 @@ tr:hover td{background:rgba(255,255,255,0.02);color:var(--text)}
 /* PLATFORM DOTS */
 .plat{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;vertical-align:middle}
 .plat-cf{background:#f7b84f}.plat-lc{background:#4f8ef7}.plat-cc{background:#22d3a0}
-.plat-hr{background:#f74f6a}.plat-he{background:#c084fc}.plat-at{background:#e879f9}
+.plat-hr{background:#f74f6a}.plat-he{background:#c084fc}.plat-at{background:#e879f9}.plat-cses{background:#5b8dee}
 
 /* FORMS */
 .form-group{margin-bottom:14px}
@@ -437,8 +437,23 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
         <input class="sync-input" id="at-handle" placeholder="AtCoder user">
         <button class="sync-btn" onclick="syncAT()">Sync</button>
       </div>
+      <div class="sync-row">
+        <div class="sync-dot" style="background:#5b8dee"></div>
+        <input class="sync-input" id="cses-handle" placeholder="CSES user">
+        <button class="sync-btn" onclick="syncCSES()">Sync</button>
+      </div>
+      <div class="sync-row">
+        <div class="sync-dot" style="background:#22d3a0"></div>
+        <input class="sync-input" id="cc-handle" placeholder="CodeChef user">
+        <button class="sync-btn" onclick="syncCC()">Sync</button>
+      </div>
+      <div class="sync-row">
+        <div class="sync-dot" style="background:#f74f6a"></div>
+        <input class="sync-input" id="hr-handle" placeholder="HackerRank user">
+        <button class="sync-btn" onclick="syncHR()">Sync</button>
+      </div>
       <div class="sync-status" id="sync-status"></div>
-      <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-top:6px" data-open-settings onclick="(window.openSettingsModal||window.openSettingsDirect)?.()"><i class="ti ti-settings"></i> Settings & goals</button>
+      <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-top:6px" data-open-settings><i class="ti ti-settings"></i> Settings & goals</button>
     </div>
     <div class="user-bar" id="user-bar">
       <strong id="user-display">—</strong>
@@ -500,7 +515,7 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
             <div id="dash-weak"></div>
           </div>
           <div class="card">
-            <div class="section-head">Recent Problems</div>
+            <div class="section-head">Practice Picks</div>
             <div id="dash-recent"></div>
           </div>
         </div>
@@ -511,7 +526,7 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
             <div id="dash-platform-bars"></div>
           </div>
           <div class="card">
-            <div class="section-head">Upcoming Contests</div>
+            <div class="section-head">Next Codeforces Contest</div>
             <div id="dash-contests"></div>
           </div>
         </div>
@@ -529,7 +544,7 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
           <div class="search-wrap"><i class="ti ti-search"></i><input id="prob-search" placeholder="Search..." oninput="renderProblems()"></div>
           <select class="form-select" style="width:130px;padding:7px 10px;font-size:12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text)" id="prob-filter-plat" onchange="renderProblems()">
             <option value="">All platforms</option>
-            <option>Codeforces</option><option>LeetCode</option><option>CodeChef</option><option>HackerRank</option><option>HackerEarth</option><option>AtCoder</option>
+            <option>Codeforces</option><option>LeetCode</option><option>AtCoder</option><option>CSES</option><option>CodeChef</option><option>HackerRank</option><option>HackerEarth</option>
           </select>
           <select class="form-select" style="width:130px;padding:7px 10px;font-size:12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text)" id="prob-filter-tag" onchange="renderProblems()"><option value="">All topics</option></select>
           <button class="btn btn-primary btn-sm" onclick="openAddProblem()"><i class="ti ti-plus"></i> Add</button>
@@ -962,11 +977,13 @@ async function loadStateFromServer(){
   document.getElementById('cf-handle').value=h.codeforces||'';
   document.getElementById('lc-handle').value=h.leetcode||'';
   document.getElementById('at-handle').value=h.atcoder||'';
-
+  document.getElementById('cses-handle').value=h.cses||'';
+  document.getElementById('cc-handle').value=h.codechef||'';
+  document.getElementById('hr-handle').value=h.hackerrank||'';
   window._userProfile=data.profile||{};
   initThemeFromStorage();
   if(typeof window.initFeaturesV2==='function'&&window.buildFeaturesContext){
-    try{window.initFeaturesV2(window.buildFeaturesContext());}catch(e){console.error('initFeaturesV2 error',e);}
+    window.initFeaturesV2(window.buildFeaturesContext());
   }
 }
 window.loadStateFromServer=loadStateFromServer;
@@ -1008,7 +1025,10 @@ async function flushSaveState(){
       handles:{
         codeforces:document.getElementById('cf-handle').value.trim(),
         leetcode:document.getElementById('lc-handle').value.trim(),
-        atcoder:document.getElementById('at-handle').value.trim()
+        atcoder:document.getElementById('at-handle').value.trim(),
+        cses:document.getElementById('cses-handle').value.trim(),
+        codechef:document.getElementById('cc-handle').value.trim(),
+        hackerrank:document.getElementById('hr-handle').value.trim()
       },
       prefs:state.prefs||{},
       profile:window._userProfile||{}
@@ -1032,7 +1052,10 @@ async function persistHandles(){
     await api.updateHandles({
       codeforces:document.getElementById('cf-handle').value.trim(),
       leetcode:document.getElementById('lc-handle').value.trim(),
-      atcoder:document.getElementById('at-handle').value.trim()
+      atcoder:document.getElementById('at-handle').value.trim(),
+      cses:document.getElementById('cses-handle').value.trim(),
+      codechef:document.getElementById('cc-handle').value.trim(),
+      hackerrank:document.getElementById('hr-handle').value.trim()
     });
   }catch(e){console.error(e);}
 }
@@ -1059,8 +1082,8 @@ async function syncCF(){
       if(seen.has(key))continue;seen.add(key);
       problems.push({name:p.name,platform:'Codeforces',rating:p.rating?String(p.rating):'',tags:normalizeTags(p.tags||[]),attempts:wrongMap[key]||0,url:p.contestId?`https://codeforces.com/problemset/problem/${p.contestId}/${p.index}`:'',date:localDateTimeIso(new Date(sub.creationTimeSeconds*1000))});
     }
-    showImportPreview(problems,`Codeforces — ${handle}`);
-    setSyncStatus(`Found ${problems.length} AC problems`,'ok');
+    const added=await autoImportProblems(problems,`Codeforces — ${handle}`);
+    setSyncStatus(`Synced ${problems.length} AC problems · ${added} new`,'ok');
   }catch(e){setSyncStatus('Error: '+(e.message||'Failed'),'err');}
 }
 
@@ -1084,8 +1107,8 @@ async function syncLC(){
       if(!tags.length)try{const tr2=await fetch(`https://alfa-leetcode-api.onrender.com/${encodeURIComponent(slug)}`);if(tr2.ok){const td2=await tr2.json();tags=normalizeTags((td2.topicTags||[]).map(t=>t.name||''));}}catch(e){}
       problems.push({name:title,platform:'LeetCode',rating:s.difficulty||'',tags:tags.length?tags:[UNCATEGORIZED_TAG],attempts:0,url:`https://leetcode.com/problems/${slug}/`,date:localDateTimeIso(s.timestamp?new Date(parseInt(s.timestamp)*1000):new Date())});
     }
-    showImportPreview(problems,`LeetCode — ${username}`);
-    setSyncStatus(`Found ${problems.length} AC problems`,'ok');
+    const added=await autoImportProblems(problems,`LeetCode — ${username}`);
+    setSyncStatus(`Synced ${problems.length} AC problems · ${added} new`,'ok');
   }catch(e){setSyncStatus('Error: '+(e.message||'Failed — API may be slow, retry'),'err');}
 }
 
@@ -1098,7 +1121,6 @@ async function syncAT(){
   try{
     let probMeta={};
     try{const pr=await fetch('https://kenkoooo.com/atcoder/resources/problems.json');const pd=await pr.json();pd.forEach(p=>probMeta[p.id]=p);}catch(e){}
-    const res=await fetch(`https://kenkoooo.com/atcoder/atcoder-api/v3/user/accepted_count?user=${encodeURIComponent(user)}`);
     const res2=await fetch(`https://kenkoooo.com/atcoder/atcoder-api/v3/user/submissions?user=${encodeURIComponent(user)}&from_second=0`);
     if(!res2.ok)throw new Error('AtCoder API error');
     const subs=await res2.json();
@@ -1110,18 +1132,132 @@ async function syncAT(){
       if(!tags.length&&meta.title){const tl=meta.title.toLowerCase();if(tl.includes('tree'))tags=['Trees'];else if(tl.includes('graph'))tags=['Graphs'];}
       problems.push({name:meta.title||s.problem_id,platform:'AtCoder',rating:meta.point?String(meta.point):'',tags:tags.length?tags:[UNCATEGORIZED_TAG],attempts:0,url:`https://atcoder.jp/contests/${s.contest_id}/tasks/${s.problem_id}`,date:localDateTimeIso(new Date(s.epoch_second*1000))});
     }
-    showImportPreview(problems,`AtCoder — ${user}`);
-    setSyncStatus(`Found ${problems.length} AC problems`,'ok');
+    const added=await autoImportProblems(problems,`AtCoder — ${user}`);
+    setSyncStatus(`Synced ${problems.length} AC problems · ${added} new`,'ok');
   }catch(e){setSyncStatus('Error: '+(e.message||'Failed'),'err');}
 }
 
+async function syncCSES(){
+  const user=document.getElementById('cses-handle').value.trim();
+  if(!user){setSyncStatus('Enter your CSES username','err');return;}
+  persistHandles();
+  setSyncStatus('<span class="spinner"></span> Fetching CSES...','');
+  try{
+    const html=await fetchTextWithProxy(`https://cses.fi/user/${encodeURIComponent(user)}`);
+    const problems=[];const seen=new Set();
+    const re=/href="(\/problemset\/task\/(\d+)\/?)"[^>]*>([^<]+)</gi;
+    let m;
+    while((m=re.exec(html))!==null){
+      const id=m[2];const name=m[3].trim();
+      if(!id||seen.has(id))continue;
+      seen.add(id);
+      problems.push({name,platform:'CSES',rating:'',tags:[UNCATEGORIZED_TAG],attempts:0,url:`https://cses.fi/problemset/task/${id}/`,date:localDateTimeIso()});
+    }
+    if(!problems.length)throw new Error('No solved tasks found — profile may be private or CSES changed its page');
+    const added=await autoImportProblems(problems,`CSES — ${user}`);
+    setSyncStatus(`Synced ${problems.length} CSES tasks · ${added} new`,'ok');
+  }catch(e){setSyncStatus('Error: '+(e.message||'Failed'),'err');}
+}
+
+async function syncCC(){
+  const user=document.getElementById('cc-handle').value.trim();
+  if(!user){setSyncStatus('Enter your CodeChef username','err');return;}
+  persistHandles();
+  setSyncStatus('<span class="spinner"></span> Fetching CodeChef...','');
+  try{
+    const html=await fetchTextWithProxy(`https://www.codechef.com/users/${encodeURIComponent(user)}`);
+    const problems=[];
+    const re=/href="(\/[^"]*\/problems\/[^"]+)"/gi;
+    let m;const seen=new Set();
+    while((m=re.exec(html))!==null){
+      const path=m[1];
+      const name=path.split('/').pop().replace(/-/g,' ');
+      if(seen.has(path))continue;
+      seen.add(path);
+      problems.push({name,platform:'CodeChef',rating:'',tags:[UNCATEGORIZED_TAG],attempts:0,url:'https://www.codechef.com'+path,date:localDateTimeIso()});
+    }
+    if(!problems.length)throw new Error('No problems found — profile may be private');
+    const added=await autoImportProblems(problems,`CodeChef — ${user}`);
+    setSyncStatus(`Synced ${problems.length} problems · ${added} new`,'ok');
+  }catch(e){setSyncStatus('Error: '+(e.message||'Failed'),'err');}
+}
+
+async function syncHR(){
+  const user=document.getElementById('hr-handle').value.trim();
+  if(!user){setSyncStatus('Enter your HackerRank username','err');return;}
+  persistHandles();
+  setSyncStatus('<span class="spinner"></span> Fetching HackerRank...','');
+  try{
+    const res=await fetch(`https://www.hackerrank.com/rest/contests/master/hackers/${encodeURIComponent(user)}/recent_challenges?offset=0&limit=200`);
+    const data=await res.json();
+    const models=data.models||data||[];
+    const problems=[];
+    const seen=new Set();
+    (Array.isArray(models)?models:[]).forEach(ch=>{
+      const name=ch.challenge_name||ch.name||'';
+      if(!name||seen.has(name))return;
+      seen.add(name);
+      const slug=ch.slug||name.toLowerCase().replace(/\s+/g,'-');
+      problems.push({name,platform:'HackerRank',rating:ch.difficulty||'',tags:normalizeTags(ch.tags||[]).length?normalizeTags(ch.tags||[]):[UNCATEGORIZED_TAG],attempts:0,url:`https://www.hackerrank.com/challenges/${slug}`,date:localDateTimeIso()});
+    });
+    const added=await autoImportProblems(problems,`HackerRank — ${user}`);
+    setSyncStatus(`Synced ${problems.length} challenges · ${added} new`,'ok');
+  }catch(e){setSyncStatus('Error: '+(e.message||'HR API blocked — try later'),'err');}
+}
 
 function setSyncStatus(msg,type){const el=document.getElementById('sync-status');el.innerHTML=msg;el.className='sync-status'+(type?' '+type:'');}
 
+async function fetchTextWithProxy(url){
+  try{
+    const res=await fetch(url);
+    if(res.ok)return res.text();
+  }catch(e){}
+  const proxied=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(url));
+  if(!proxied.ok)throw new Error(`HTTP ${proxied.status}`);
+  return proxied.text();
+}
+
 // ======= IMPORT =======
+function problemImportKey(p){
+  const url=(p.url||'').toLowerCase().replace(/\/$/,'');
+  if(url)return url;
+  return `${(p.platform||'').toLowerCase()}::${(p.name||'').toLowerCase().trim()}`;
+}
+
+async function autoImportProblems(rawProblems,source){
+  const existing=new Set((state.problems||[]).map(problemImportKey));
+  let added=0;
+  for(const p of rawProblems||[]){
+    const key=problemImportKey(p);
+    if(!key||existing.has(key))continue;
+    existing.add(key);
+    state.problems.push({
+      id:String(Date.now()+Math.random()),
+      name:p.name,
+      platform:p.platform,
+      url:p.url||'',
+      rating:p.rating||'',
+      tags:normalizeTags(p.tags||[]).length?normalizeTags(p.tags||[]):[UNCATEGORIZED_TAG],
+      attempts:p.attempts||0,
+      code:'',
+      errors:'',
+      concept:'',
+      classification:null,
+      date:p.date||localDateTimeIso(),
+      imported:true,
+      meta:{versions:[],revision:{stage:0,nextDue:null,intervalDays:7},linkedNoteIds:[],linkedContestIds:[],syncSource:source||'',timeTakenMinutes:null}
+    });
+    added++;
+  }
+  if(added)await saveStateNow();
+  renderPage(state.currentPage);
+  updateBadges();
+  return added;
+}
+
 function showImportPreview(rawProblems,source){
-  const existingNames=new Set(state.problems.map(p=>p.name.toLowerCase().trim()));
-  const newProblems=rawProblems.filter(p=>!existingNames.has(p.name.toLowerCase().trim()));
+  const existingKeys=new Set(state.problems.map(problemImportKey));
+  const newProblems=rawProblems.filter(p=>!existingKeys.has(problemImportKey(p)));
   const alreadyHave=rawProblems.length-newProblems.length;
   state.pendingImport=newProblems;
   document.getElementById('import-title').textContent=`Import from ${source}`;
@@ -1159,7 +1295,7 @@ function confirmImport(){
   const toImport=state.pendingImport.length>200?[...checked.map(i=>state.pendingImport[i]),...state.pendingImport.slice(200)]:checked.map(i=>state.pendingImport[i]);
   let added=0;
   for(const p of toImport){
-    state.problems.push({id:String(Date.now()+Math.random()),name:p.name,platform:p.platform,url:p.url||'',rating:p.rating||'',tags:normalizeTags(p.tags||[]).length?normalizeTags(p.tags||[]):[UNCATEGORIZED_TAG],attempts:p.attempts||0,code:'',errors:'',concept:'',classification:null,date:p.date||new Date().toISOString(),imported:true});
+    state.problems.push({id:String(Date.now()+Math.random()),name:p.name,platform:p.platform,url:p.url||'',rating:p.rating||'',tags:normalizeTags(p.tags||[]).length?normalizeTags(p.tags||[]):[UNCATEGORIZED_TAG],attempts:p.attempts||0,code:'',errors:'',concept:'',classification:null,date:p.date||localDateTimeIso(),imported:true});
     added++;
   }
   saveState();closeModal('modal-import');
@@ -1223,7 +1359,7 @@ function checkRevisionDue(){
 }
 
 // ======= HELPERS =======
-function platCode(p){return{Codeforces:'cf',LeetCode:'lc',CodeChef:'cc',HackerRank:'hr',HackerEarth:'he',AtCoder:'at'}[p]||'cf';}
+function platCode(p){return{Codeforces:'cf',LeetCode:'lc',AtCoder:'at',CSES:'cses',CodeChef:'cc',HackerRank:'hr',HackerEarth:'he'}[p]||'cf';}
 function ratingTag(r){if(!r)return'tag-gray';if(r==='Easy')return'tag-green';if(r==='Hard')return'tag-red';if(r==='Medium')return'tag-amber';const n=parseInt(r);if(n<1200)return'tag-green';if(n<1800)return'tag-amber';return'tag-red';}
 function normalizeTag(raw){
   if(!raw)return null;
@@ -1331,50 +1467,70 @@ function getTopicStats(){
   return s;
 }
 
-// ======= STREAK / HEATMAP (local calendar day = 12:00 AM – 11:59 PM) =======
+// ======= STREAK / HEATMAP (IST calendar day = 12:00 AM – 11:59 PM) =======
+const IST_TIME_ZONE='Asia/Kolkata';
+const IST_OFFSET='+05:30';
+const istFormatter=new Intl.DateTimeFormat('en-CA',{
+  timeZone:IST_TIME_ZONE,
+  year:'numeric',
+  month:'2-digit',
+  day:'2-digit',
+  hour:'2-digit',
+  minute:'2-digit',
+  second:'2-digit',
+  hour12:false
+});
+function istParts(date=new Date()){
+  const parts={};
+  istFormatter.formatToParts(date).forEach(p=>{if(p.type!=='literal')parts[p.type]=p.value;});
+  return {
+    year:parseInt(parts.year,10),
+    month:parseInt(parts.month,10),
+    day:parseInt(parts.day,10),
+    hour:parseInt(parts.hour,10),
+    minute:parseInt(parts.minute,10),
+    second:parseInt(parts.second,10)
+  };
+}
+function todayISTDate(){
+  const p=istParts(new Date());
+  return localDateFromParts(p.year,p.month-1,p.day);
+}
 function localDateStr(date){
-  const y=date.getFullYear();
-  const m=String(date.getMonth()+1).padStart(2,'0');
-  const d=String(date.getDate()).padStart(2,'0');
+  const y=date.getUTCFullYear();
+  const m=String(date.getUTCMonth()+1).padStart(2,'0');
+  const d=String(date.getUTCDate()).padStart(2,'0');
   return `${y}-${m}-${d}`;
 }
 
-/** Store solve time in local timezone (not UTC) so activity buckets match the calendar day. */
+/** Store solve time as IST wall time with offset so the backend cannot shift the day. */
 function localDateTimeIso(date=new Date()){
   const pad=n=>String(n).padStart(2,'0');
-  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  const p=istParts(date);
+  return `${p.year}-${pad(p.month)}-${pad(p.day)}T${pad(p.hour)}:${pad(p.minute)}:${pad(p.second)}${IST_OFFSET}`;
 }
 
-/** Map any stored date/ISO to the user's local calendar day (YYYY-MM-DD).
- *  A calendar day is 12:00 AM – 11:59 PM in the user's local timezone.
- *  Bare ISO strings (no timezone offset like "2026-06-02T22:45:00") are
- *  treated as LOCAL time by extracting the date part directly, preventing
- *  browsers from mis-interpreting them as UTC (which would shift the day). */
+/** Map any stored date/ISO to the IST calendar day (YYYY-MM-DD). */
 function localDateKeyFromValue(value){
   if(value==null||value==='')return '';
   const s=String(value).trim();
-  // Pure date (YYYY-MM-DD) — use as-is
   if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
-  // Bare datetime with no timezone offset (e.g. "2026-06-02T22:45:00")
-  // Extract the date part directly to avoid browser UTC interpretation
-  if(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(s)&&!/[Zz]$/.test(s)&&!/[+\-]\d{2}:\d{2}$/.test(s)){
-    return s.substring(0,10);
-  }
-  // Date string with timezone info — parse and convert to local date
+  if(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(s)&&!/[Zz]$/.test(s)&&!/[+\-]\d{2}:\d{2}$/.test(s))return s.substring(0,10);
   const d=new Date(s);
   if(Number.isNaN(d.getTime())){
     const m=s.match(/^(\d{4}-\d{2}-\d{2})/);
     return m?m[1]:'';
   }
-  return localDateStr(d);
+  const p=istParts(d);
+  return `${p.year}-${String(p.month).padStart(2,'0')}-${String(p.day).padStart(2,'0')}`;
 }
 
 function localDateFromParts(y,m,d){
-  return new Date(y,m,d);
+  return new Date(Date.UTC(y,m,d,12,0,0));
 }
 
 function addLocalDays(anchor,delta){
-  return localDateFromParts(anchor.getFullYear(),anchor.getMonth(),anchor.getDate()+delta);
+  return localDateFromParts(anchor.getUTCFullYear(),anchor.getUTCMonth(),anchor.getUTCDate()+delta);
 }
 
 function getActivityMap(){
@@ -1391,24 +1547,13 @@ function getActivityMap(){
 }
 
 function calcStreak(actMap){
-  const todayLocal=localDateFromParts(
-    new Date().getFullYear(),
-    new Date().getMonth(),
-    new Date().getDate()
-  );
-  // Best streak: scan backwards over last 365 days
-  let best=0;let cur=0;
+  const todayLocal=todayISTDate();
+  let streak=0;let best=0;let cur=0;
   for(let i=0;i<365;i++){
     const key=localDateStr(addLocalDays(todayLocal,-i));
     if(actMap[key]){cur++;if(cur>best)best=cur;}else cur=0;
   }
-  // Current streak: a calendar day runs 12:00 AM – 11:59 PM.
-  // If today (i=0) has no activity yet (day just started), we still
-  // count the streak as alive — start counting from yesterday (i=1).
-  // If today DOES have activity, start counting from today (i=0).
-  let streak=0;
-  const startIdx=actMap[localDateStr(todayLocal)]?0:1;
-  for(let i=startIdx;i<365;i++){
+  for(let i=0;i<365;i++){
     const key=localDateStr(addLocalDays(todayLocal,-i));
     if(actMap[key])streak++;else break;
   }
@@ -1419,18 +1564,9 @@ function renderHeatmap(actMap){
   const container=document.getElementById('heatmap-container');
   if(!container)return;
   const weeks=window.HEATMAP_WEEKS||52;
-  const todayLocal=localDateFromParts(
-    new Date().getFullYear(),
-    new Date().getMonth(),
-    new Date().getDate()
-  );
-  const endOfToday=new Date(
-    todayLocal.getFullYear(),
-    todayLocal.getMonth(),
-    todayLocal.getDate(),
-    23,59,59,999
-  );
-  const dayOfWeek=todayLocal.getDay()||7;// mon=1..sun=7
+  const todayLocal=todayISTDate();
+  const endOfToday=localDateFromParts(todayLocal.getUTCFullYear(),todayLocal.getUTCMonth(),todayLocal.getUTCDate()+1);
+  const dayOfWeek=todayLocal.getUTCDay()||7;// mon=1..sun=7
   const startDate=addLocalDays(todayLocal,-(dayOfWeek-1)-((weeks-1)*7));
 
   const COL_W=15;// 12px cell + 3px gap — month labels must match week columns
@@ -1453,13 +1589,13 @@ function renderHeatmap(actMap){
     for(let d=0;d<7;d++){
       const date=addLocalDays(startDate,(w*7)+d);
       const dateStr=localDateStr(date);
-      const monthKey=date.getFullYear()*12+date.getMonth();
+      const monthKey=date.getUTCFullYear()*12+date.getUTCMonth();
       // Label the week column where this month first appears (not only Mondays)
       if(monthKey!==lastMonthKey){
-        monthThisCol=date.toLocaleString('default',{month:'short'});
+        monthThisCol=date.toLocaleString('default',{month:'short',timeZone:'UTC'});
         lastMonthKey=monthKey;
       }
-      if(date>endOfToday){
+      if(date>=endOfToday){
         gridHtml+=`<div style="width:12px;height:12px;border-radius:3px;opacity:0;flex-shrink:0"></div>`;
         continue;
       }
@@ -1512,19 +1648,14 @@ function renderDashboard(){
   document.getElementById('streak-num').textContent=streak;
   document.getElementById('streak-best').textContent=`Best: ${best} days`;
 
-  // Week stats - last 7 days with correct day labels
+  // Week stats
   const weekProbs=[];
   const weekDays=[];
-  const todayLocal=localDateFromParts(
-    new Date().getFullYear(),
-    new Date().getMonth(),
-    new Date().getDate()
-  );
-  const DAY_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const todayLocal=todayISTDate();
   for(let i=0;i<7;i++){
     const d=addLocalDays(todayLocal,-i);
     weekProbs.push(actMap[localDateStr(d)]||0);
-    weekDays.push(DAY_NAMES[d.getDay()]);
+    weekDays.push(d.toLocaleString('default',{weekday:'short',timeZone:'UTC'}));
   }
   const weekTotal=weekProbs.reduce((a,b)=>a+b,0);
   document.getElementById('week-stats').innerHTML=`
@@ -1532,10 +1663,9 @@ function renderDashboard(){
       ${weekProbs.slice().reverse().map((n,i)=>{
         const h=Math.max(4,Math.round((n/Math.max(...weekProbs,1))*38));
         const label=weekDays.slice().reverse()[i];
-        const isToday=(i===weekProbs.length-1);
         return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
-          <div style="width:100%;height:${h}px;background:${n?'var(--accent)':'var(--bg4)'};border-radius:3px 3px 0 0;opacity:${n?1:0.4};transition:height 0.4s${isToday?';box-shadow:0 0 6px rgba(91,141,238,0.4)':''}"></div>
-          <div style="font-size:8px;color:${isToday?'var(--accent)':'var(--text3)'};font-family:'Space Mono',monospace;font-weight:${isToday?700:400}">${label}</div>
+          <div style="width:100%;height:${h}px;background:${n?'var(--accent)':'var(--bg4)'};border-radius:3px 3px 0 0;opacity:${n?1:0.4};transition:height 0.4s"></div>
+          <div style="font-size:8px;color:var(--text3);font-family:'Space Mono',monospace">${label}</div>
         </div>`;}).join('')}
     </div>
     <div style="font-size:12px;color:var(--text2);font-family:'Space Mono',monospace"><span style="color:var(--accent);font-weight:700">${weekTotal}</span> problems this week</div>`;
@@ -1547,9 +1677,9 @@ function renderDashboard(){
     return`<div class="chart-row" style="cursor:pointer" ${dataNavTag(topic)}><div class="chart-label" style="min-width:95px;font-size:11px">${topic}</div><div class="chart-bar-wrap"><div class="chart-bar" style="width:${Math.max(10,pct)}%;background:${col}">${s.total}</div></div><div class="chart-count">${Math.round(s.acc*10)/10}</div></div>`;
   }).join(''):'<div style="color:var(--text3);font-size:13px">Add problems with tags to see weak areas.</div>';
 
-  // Recent
-  const recent=probs.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
-  document.getElementById('dash-recent').innerHTML=recent.length?recent.map(p=>`
+  // Practice picks
+  const picks=typeof window.getPracticeRecommendations==='function'?window.getPracticeRecommendations():probs.filter(p=>p.classification!=='confident').slice(0,5);
+  document.getElementById('dash-recent').innerHTML=picks.length?picks.map(p=>`
     <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)">
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</div>
@@ -1563,7 +1693,7 @@ function renderDashboard(){
   probs.forEach(p=>{if(!ps[p.platform])ps[p.platform]=0;ps[p.platform]++;});
   const platEntries=Object.entries(ps).sort((a,b)=>b[1]-a[1]);
   const platMax=Math.max(...Object.values(ps),1);
-  const platColors={Codeforces:'#f7b84f',LeetCode:'#4f8ef7',CodeChef:'#22d3a0',AtCoder:'#e879f9',HackerRank:'#f74f6a',HackerEarth:'#c084fc'};
+  const platColors={Codeforces:'#f7b84f',LeetCode:'#4f8ef7',AtCoder:'#e879f9',CSES:'#5b8dee',CodeChef:'#22d3a0',HackerRank:'#f74f6a',HackerEarth:'#c084fc'};
   document.getElementById('dash-platform-bars').innerHTML=platEntries.length?platEntries.map(([plat,count])=>{
     const pct=Math.round((count/platMax)*100);const col=platColors[plat]||'var(--accent)';
     return`<div class="chart-row"><div class="chart-label" style="min-width:95px;font-size:11px"><span class="plat plat-${platCode(plat)}"></span>${plat}</div><div class="chart-bar-wrap"><div class="chart-bar" style="width:${Math.max(10,pct)}%;background:${col}">${count}</div></div></div>`;
@@ -1571,11 +1701,11 @@ function renderDashboard(){
 
   // Contests
   processContestLifecycle();
-  const upcoming=getUpcomingContests().slice(0,3);
+  const upcoming=getUpcomingContests().filter(c=>c.platform==='Codeforces').slice(0,1);
   document.getElementById('dash-contests').innerHTML=upcoming.length?upcoming.map(c=>{
     const diff=Math.max(0,new Date(c.date)-Date.now());const days=Math.floor(diff/86400000);const hrs=Math.floor((diff%86400000)/3600000);
     return`<div style="padding:8px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600">${esc(c.name)}</div><div style="display:flex;justify-content:space-between;margin-top:3px"><span style="font-size:11px;color:var(--text3)">${c.platform} · ${c.duration}min</span><span class="countdown">${days>0?days+'d '+hrs+'h':hrs+'h'}</span></div></div>`;
-  }).join(''):'<div style="color:var(--text3);font-size:13px">No upcoming contests. <a href="#" onclick="nav(\'contests\');fetchAllContests();return false">Refresh</a></div>';
+  }).join(''):'<div style="color:var(--text3);font-size:13px">No upcoming Codeforces contest. <a href="#" onclick="nav(\'contests\');fetchAllContests();return false">Refresh</a></div>';
   const v2=document.getElementById('dash-v2-extras');
   if(v2&&typeof window.renderV2DashboardExtras==='function')v2.innerHTML=window.renderV2DashboardExtras(actMap);
   const dupEl=document.getElementById('dash-dup-banner');
@@ -3095,23 +3225,12 @@ window.buildFeaturesContext=function(){
     state,esc,STANDARD_TAGS,UNCATEGORIZED_TAG,
     getActivityMap,localDateKeyFromValue,localDateStr,addLocalDays,localDateFromParts,
     saveState,saveStateNow,showToast,openModal,closeModal,nav,renderPage,
-    syncCF,syncLC,syncAT,fetchAllContests,getContestEnd,
+    syncCF,syncLC,syncAT,syncCSES,syncCC,syncHR,fetchAllContests,getContestEnd,
     buildContestAnalytics,showImportPreview,
     fetchRatingHistory:async(s,h)=>{const{fetchRatingHistory}=await import('/src/features-v2.js');return fetchRatingHistory(s,h);}
   };
 };
-// Fallback: basic search opener (overridden by initFeaturesV2 with full functionality)
-window.openGlobalSearch=function(){
-  const ov=document.getElementById('global-search-overlay');
-  if(!ov)return;
-  ov.classList.remove('hidden');
-  const inp=document.getElementById('global-search-input');
-  if(inp){inp.value='';inp.focus();inp.dispatchEvent(new Event('input'));}
-};
-// Fallback: open settings directly (overridden by initFeaturesV2 listener)
-window.openSettingsDirect=function(){
-  if(typeof window.openSettingsModal==='function')window.openSettingsModal();
-};
+window.openGlobalSearch=function(){document.getElementById('global-search-overlay')?.classList.remove('hidden');};
 
 // App init runs after login via bootstrap.js enterApp()
 </script>

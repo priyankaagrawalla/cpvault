@@ -158,6 +158,7 @@ window.importLegacyLocalStorage = async function () {
       codeforces: localStorage.getItem('cpv_cf') || '',
       leetcode: localStorage.getItem('cpv_lc') || '',
       atcoder: localStorage.getItem('cpv_at') || '',
+      cses: localStorage.getItem('cpv_cses') || '',
     };
     await api.importLocal(vault, handles);
     await window.loadStateFromServer();

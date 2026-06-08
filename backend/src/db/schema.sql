@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS platform_handles (
   codeforces_handle VARCHAR(100),
   leetcode_handle VARCHAR(100),
   atcoder_handle VARCHAR(100),
+  cses_handle VARCHAR(100),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

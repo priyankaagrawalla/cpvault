@@ -13,24 +13,26 @@ router.get('/', requireAuth, async (req, res) => {
     codeforces: h?.codeforces_handle || '',
     leetcode: h?.leetcode_handle || '',
     atcoder: h?.atcoder_handle || '',
+    cses: h?.cses_handle || '',
     codechef: h?.codechef_handle || '',
     hackerrank: h?.hackerrank_handle || '',
   });
 });
 
 router.put('/', requireAuth, async (req, res) => {
-  const { codeforces, leetcode, atcoder, codechef, hackerrank } = req.body;
+  const { codeforces, leetcode, atcoder, cses, codechef, hackerrank } = req.body;
   await ensureUserRows(req.user.id);
   await pool.query(
     `UPDATE platform_handles SET
       codeforces_handle = $2, leetcode_handle = $3, atcoder_handle = $4,
-      codechef_handle = $5, hackerrank_handle = $6, updated_at = NOW()
+      cses_handle = $5, codechef_handle = $6, hackerrank_handle = $7, updated_at = NOW()
      WHERE user_id = $1`,
     [
       req.user.id,
       codeforces?.trim() || null,
       leetcode?.trim() || null,
       atcoder?.trim() || null,
+      cses?.trim() || null,
       codechef?.trim() || null,
       hackerrank?.trim() || null,
     ]
@@ -39,6 +41,7 @@ router.put('/', requireAuth, async (req, res) => {
     codeforces: codeforces || '',
     leetcode: leetcode || '',
     atcoder: atcoder || '',
+    cses: cses || '',
     codechef: codechef || '',
     hackerrank: hackerrank || '',
   });
