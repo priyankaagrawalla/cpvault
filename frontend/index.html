@@ -437,11 +437,7 @@ textarea.form-input{resize:vertical;min-height:75px;line-height:1.6}
         <input class="sync-input" id="at-handle" placeholder="AtCoder user">
         <button class="sync-btn" onclick="syncAT()">Sync</button>
       </div>
-      <div class="sync-row">
-        <div class="sync-dot" style="background:#5b8dee"></div>
-        <input class="sync-input" id="cses-handle" placeholder="CSES user">
-        <button class="sync-btn" onclick="syncCSES()">Sync</button>
-      </div>
+
       <div class="sync-status" id="sync-status"></div>
       <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-top:6px" data-open-settings><i class="ti ti-settings"></i> Settings & goals</button>
     </div>
@@ -963,7 +959,6 @@ async function loadStateFromServer(){
   document.getElementById('cf-handle').value=h.codeforces||'';
   document.getElementById('lc-handle').value=h.leetcode||'';
   document.getElementById('at-handle').value=h.atcoder||'';
-  document.getElementById('cses-handle').value=h.cses||'';
   window._userProfile=data.profile||{};
   initThemeFromStorage();
   if(typeof window.initFeaturesV2==='function'&&window.buildFeaturesContext){
@@ -1009,8 +1004,7 @@ async function flushSaveState(){
       handles:{
         codeforces:document.getElementById('cf-handle').value.trim(),
         leetcode:document.getElementById('lc-handle').value.trim(),
-        atcoder:document.getElementById('at-handle').value.trim(),
-        cses:document.getElementById('cses-handle').value.trim()
+        atcoder:document.getElementById('at-handle').value.trim()
       },
       prefs:state.prefs||{},
       profile:window._userProfile||{}
@@ -1034,8 +1028,7 @@ async function persistHandles(){
     await api.updateHandles({
       codeforces:document.getElementById('cf-handle').value.trim(),
       leetcode:document.getElementById('lc-handle').value.trim(),
-      atcoder:document.getElementById('at-handle').value.trim(),
-      cses:document.getElementById('cses-handle').value.trim()
+      atcoder:document.getElementById('at-handle').value.trim()
     });
   }catch(e){console.error(e);}
 }
@@ -1074,18 +1067,60 @@ async function syncLC(){
   persistHandles();
   setSyncStatus('<span class="spinner"></span> Fetching LeetCode...','');
   try{
-    const res=await fetch(`https://alfa-leetcode-api.onrender.com/${encodeURIComponent(username)}/acSubmission?limit=100`);
+    // Fetch accepted submissions (higher limit to get more problems)
+    const res=await fetch(`https://alfa-leetcode-api.onrender.com/${encodeURIComponent(username)}/acSubmission?limit=500`);
     if(!res.ok)throw new Error(`HTTP ${res.status}`);
-    const data=await res.json();const subs=data.submission||[];
-    if(!Array.isArray(subs))throw new Error('Unexpected response');
+    const data=await res.json();const subs=data.submission||data.acSubmission||[];
+    if(!Array.isArray(subs))throw new Error('Unexpected response format');
+    if(!subs.length){
+      // Try to verify the user exists
+      const userRes=await fetch(`https://alfa-leetcode-api.onrender.com/${encodeURIComponent(username)}`);
+      if(!userRes.ok)throw new Error('User not found or API unavailable');
+      const userData=await userRes.json();
+      if(userData.errors)throw new Error('User not found: '+username);
+      setSyncStatus('No accepted submissions found','ok');return;
+    }
     const seen=new Set();const problems=[];
+    // Collect unique problems
+    const uniqueSubs=[];
     for(const s of subs){
       const title=s.title||'';if(!title||seen.has(title))continue;seen.add(title);
-      const slug=s.titleSlug||title.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
-      let tags=[];
-      try{const tr=await fetch(`https://alfa-leetcode-api.onrender.com/select?titleSlug=${encodeURIComponent(slug)}`);if(tr.ok){const td=await tr.json();tags=normalizeTags((td.topicTags||[]).map(t=>t.name||t.slug||''));}}catch(e){}
-      if(!tags.length)try{const tr2=await fetch(`https://alfa-leetcode-api.onrender.com/${encodeURIComponent(slug)}`);if(tr2.ok){const td2=await tr2.json();tags=normalizeTags((td2.topicTags||[]).map(t=>t.name||''));}}catch(e){}
-      problems.push({name:title,platform:'LeetCode',rating:s.difficulty||'',tags:tags.length?tags:[UNCATEGORIZED_TAG],attempts:0,url:`https://leetcode.com/problems/${slug}/`,date:localDateTimeIso(s.timestamp?new Date(parseInt(s.timestamp)*1000):new Date())});
+      uniqueSubs.push(s);
+    }
+    setSyncStatus(`<span class="spinner"></span> Fetching details for ${uniqueSubs.length} problems...`,'');
+    // Fetch tags and difficulty in batches of 5 with delay to avoid overwhelming the API
+    const BATCH_SIZE=5;
+    for(let i=0;i<uniqueSubs.length;i+=BATCH_SIZE){
+      const batch=uniqueSubs.slice(i,i+BATCH_SIZE);
+      const results=await Promise.allSettled(batch.map(async s=>{
+        const slug=s.titleSlug||s.title.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+        let tags=[];let difficulty='';
+        try{
+          const tr=await fetch(`https://alfa-leetcode-api.onrender.com/select?titleSlug=${encodeURIComponent(slug)}`);
+          if(tr.ok){
+            const td=await tr.json();
+            tags=normalizeTags((td.topicTags||[]).map(t=>t.name||t.slug||''));
+            difficulty=td.difficulty||'';
+          }
+        }catch(e){}
+        return{s,slug,tags,difficulty};
+      }));
+      for(const r of results){
+        if(r.status!=='fulfilled')continue;
+        const{s,slug,tags,difficulty}=r.value;
+        problems.push({
+          name:s.title,
+          platform:'LeetCode',
+          rating:difficulty||s.difficulty||'',
+          tags:tags.length?tags:[UNCATEGORIZED_TAG],
+          attempts:0,
+          url:`https://leetcode.com/problems/${slug}/`,
+          date:localDateTimeIso(s.timestamp?new Date(parseInt(s.timestamp)*1000):new Date())
+        });
+      }
+      // Small delay between batches to avoid rate limiting
+      if(i+BATCH_SIZE<uniqueSubs.length)await new Promise(r=>setTimeout(r,300));
+      setSyncStatus(`<span class="spinner"></span> Fetched ${Math.min(i+BATCH_SIZE,uniqueSubs.length)}/${uniqueSubs.length} problems...`,'');
     }
     const added=await autoImportProblems(problems,`LeetCode — ${username}`);
     setSyncStatus(`Synced ${problems.length} AC problems · ${added} new`,'ok');
@@ -1117,39 +1152,7 @@ async function syncAT(){
   }catch(e){setSyncStatus('Error: '+(e.message||'Failed'),'err');}
 }
 
-async function syncCSES(){
-  const user=document.getElementById('cses-handle').value.trim();
-  if(!user){setSyncStatus('Enter your CSES username','err');return;}
-  persistHandles();
-  setSyncStatus('<span class="spinner"></span> Fetching CSES...','');
-  try{
-    const html=await fetchTextWithProxy(`https://cses.fi/user/${encodeURIComponent(user)}`);
-    const problems=[];const seen=new Set();
-    const re=/href="(\/problemset\/task\/(\d+)\/?)"[^>]*>([^<]+)</gi;
-    let m;
-    while((m=re.exec(html))!==null){
-      const id=m[2];const name=m[3].trim();
-      if(!id||seen.has(id))continue;
-      seen.add(id);
-      problems.push({name,platform:'CSES',rating:'',tags:[UNCATEGORIZED_TAG],attempts:0,url:`https://cses.fi/problemset/task/${id}/`,date:localDateTimeIso()});
-    }
-    if(!problems.length)throw new Error('No solved tasks found — profile may be private or CSES changed its page');
-    const added=await autoImportProblems(problems,`CSES — ${user}`);
-    setSyncStatus(`Synced ${problems.length} CSES tasks · ${added} new`,'ok');
-  }catch(e){setSyncStatus('Error: '+(e.message||'Failed'),'err');}
-}
-
 function setSyncStatus(msg,type){const el=document.getElementById('sync-status');el.innerHTML=msg;el.className='sync-status'+(type?' '+type:'');}
-
-async function fetchTextWithProxy(url){
-  try{
-    const res=await fetch(url);
-    if(res.ok)return res.text();
-  }catch(e){}
-  const proxied=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(url));
-  if(!proxied.ok)throw new Error(`HTTP ${proxied.status}`);
-  return proxied.text();
-}
 
 // ======= IMPORT =======
 function problemImportKey(p){
@@ -3179,7 +3182,7 @@ window.buildFeaturesContext=function(){
     state,esc,STANDARD_TAGS,UNCATEGORIZED_TAG,
     getActivityMap,localDateKeyFromValue,localDateStr,addLocalDays,localDateFromParts,
     saveState,saveStateNow,showToast,openModal,closeModal,nav,renderPage,
-    syncCF,syncLC,syncAT,syncCSES,fetchAllContests,getContestEnd,getUpcomingContests,formatCountdown,
+    syncCF,syncLC,syncAT,fetchAllContests,getContestEnd,getUpcomingContests,formatCountdown,
     buildContestAnalytics,showImportPreview,
     fetchRatingHistory:async(s,h)=>{const{fetchRatingHistory}=await import('/src/features-v2.js');return fetchRatingHistory(s,h);}
   };

@@ -10,7 +10,7 @@ export function defaultPrefs() {
     goals: { dailyProblems: 1, weeklyProblems: 7, weeklyContests: 1 },
     customTags: [],
     tagAliases: {},
-    sync: { enabled: true, intervalHours: 24, lastSyncAt: null, platforms: ['cf', 'lc', 'at', 'cses'] },
+    sync: { enabled: true, intervalHours: 24, lastSyncAt: null, platforms: ['cf', 'lc', 'at'] },
     emailEnabled: false,
     emailAddress: '',
     ratingHistory: { codeforces: [], leetcode: [] },
@@ -279,10 +279,36 @@ export function renderRecommendations(recs, esc) {
 
 export function renderRecentProblems(problems, esc) {
   if (!problems.length) return '';
+  const ratingBadge = (r) => {
+    if (!r) return '';
+    let cls = 'tag-gray';
+    if (r === 'Easy') cls = 'tag-green';
+    else if (r === 'Medium') cls = 'tag-amber';
+    else if (r === 'Hard') cls = 'tag-red';
+    else {
+      const n = parseInt(r);
+      if (!isNaN(n)) {
+        if (n < 1200) cls = 'tag-green';
+        else if (n < 1800) cls = 'tag-amber';
+        else cls = 'tag-red';
+      }
+    }
+    return `<span class="tag ${cls}" style="font-size:10px;padding:2px 7px;margin-left:6px">${esc(String(r))}</span>`;
+  };
   return `<div class="card" style="margin-bottom:14px"><div class="section-head">Recent problems</div>
-    ${problems.map((p) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
-      <div><div style="font-weight:600;font-size:13px">${esc(p.name)}</div><div style="font-size:11px;color:var(--text3)">${esc(p.platform)} · ${(p.tags || []).slice(0, 2).join(', ') || 'no topics'}</div></div>
-      <button type="button" class="btn btn-ghost btn-sm" data-view-problem="${esc(String(p.id))}">Open</button>
+    ${problems.map((p) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:4px">
+          <span style="font-weight:600;font-size:13px">${esc(p.name)}</span>
+          ${ratingBadge(p.rating)}
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <span style="font-size:11px;color:var(--text3)">${esc(p.platform)}</span>
+          ${(p.tags || []).slice(0, 4).map((t) => `<span class="tag tag-purple" style="font-size:9px;padding:1px 6px">${esc(t)}</span>`).join('')}
+          ${(p.tags || []).length > 4 ? `<span style="font-size:10px;color:var(--text3)">+${(p.tags || []).length - 4}</span>` : ''}
+        </div>
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" data-view-problem="${esc(String(p.id))}" style="flex-shrink:0;margin-left:8px">Open</button>
     </div>`).join('')}
   </div>`;
 }
@@ -412,19 +438,18 @@ export async function fetchRatingHistory(state, handles) {
 }
 
 export async function runBackgroundSync(ctx) {
-  const { state, syncCF, syncLC, syncAT, syncCSES, showToast, saveStateNow } = ctx;
+  const { state, syncCF, syncLC, syncAT, showToast, saveStateNow } = ctx;
   const sync = state.prefs?.sync;
   if (!sync?.enabled) return;
   const hours = sync.intervalHours || 24;
   const last = sync.lastSyncAt ? new Date(sync.lastSyncAt).getTime() : 0;
   if (Date.now() - last < hours * 3600000) return;
-  const platforms = sync.platforms || ['cf', 'lc', 'at', 'cses'];
+  const platforms = sync.platforms || ['cf', 'lc', 'at'];
   showToast?.('Background sync started…');
   try {
     if (platforms.includes('cf') && document.getElementById('cf-handle')?.value?.trim()) await syncCF?.();
     if (platforms.includes('lc') && document.getElementById('lc-handle')?.value?.trim()) await syncLC?.();
     if (platforms.includes('at') && document.getElementById('at-handle')?.value?.trim()) await syncAT?.();
-    if (platforms.includes('cses') && document.getElementById('cses-handle')?.value?.trim()) await syncCSES?.();
     state.prefs.sync.lastSyncAt = new Date().toISOString();
     await saveStateNow?.();
     showToast?.('Background sync finished');
@@ -455,7 +480,6 @@ export function initFeaturesV2(ctx) {
     syncCF,
     syncLC,
     syncAT,
-    syncCSES,
     fetchAllContests,
     getContestEnd,
     buildContestAnalytics,
@@ -520,8 +544,8 @@ export function initFeaturesV2(ctx) {
     }
   });
 
-  setInterval(() => runBackgroundSync({ ...ctx, syncCF, syncLC, syncAT, syncCSES }), 15 * 60 * 1000);
-  setTimeout(() => runBackgroundSync({ ...ctx, syncCF, syncLC, syncAT, syncCSES }), 8000);
+  setInterval(() => runBackgroundSync({ ...ctx, syncCF, syncLC, syncAT }), 15 * 60 * 1000);
+  setTimeout(() => runBackgroundSync({ ...ctx, syncCF, syncLC, syncAT }), 8000);
 
   window.renderV2DashboardExtras = function (actMap) {
     const progress = buildGoalsProgress(state, actMap, localDateKeyFromValue, localDateStr, addLocalDays, localDateFromParts);
